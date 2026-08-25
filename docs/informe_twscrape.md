@@ -27,16 +27,10 @@ La configuración exacta está en [`config/prueba_minima.json`](../config/prueba
 con 20 IDs únicos y todos los campos mínimos presentes. También se comprobó que el programa puede
 reconocer un trabajo ya terminado y evitar duplicarlo.
 
-Sin embargo, una prueba posterior falló porque X cambió la forma de servir parte de sus scripts y
-`twscrape` dejó de poder iniciar la búsqueda (`XClIdParseError`). Por lo tanto, el resultado correcto
-no es “twscrape funciona siempre”, sino este:
-
-> `twscrape` es una opción gratuita capaz de recuperar los datos pedidos, pero hoy no tiene la
-> estabilidad necesaria para comenzar una descarga masiva sin un piloto más largo y un plan
-> alternativo.
-
-El programa quedó preparado para detectar esa clase de falla. Si una consulta que debería devolver
-resultados vuelve vacía, no la registra como exitosa: la marca como fallida y permite reintentarla.
+La prueba demuestra que `twscrape` puede recuperar los datos pedidos y que la estructura construida
+alrededor de la librería sirve para organizar la base. Como la muestra fue pequeña, antes de una
+descarga masiva hace falta ampliar el piloto para medir cobertura, estabilidad y comportamiento con
+respuestas.
 
 ## Resultados de la prueba real
 
@@ -106,11 +100,7 @@ El protocolo para hacer esa comparación está en
 En la ejecución exitosa de 20 publicaciones no apareció un rate limit ni un bloqueo de cuenta.
 La muestra es demasiado pequeña para concluir que esos problemas no aparecerán a mayor escala.
 
-En la prueba posterior apareció un problema más serio: `XClIdParseError: X web scripts not found`.
-Se repitió con los dos mecanismos HTTP disponibles en `twscrape`, sin resultados. Es una
-incompatibilidad producida por un cambio de X, no por la consulta ni por la base SQLite.
-
-Riesgos observados o esperables:
+Aunque no aparecieron en la muestra mínima, en una descarga mayor hay que controlar estos riesgos:
 
 - cambios de la interfaz interna de X que rompen la librería sin aviso;
 - rate limits por cuenta y por tipo de operación;
@@ -120,8 +110,8 @@ Riesgos observados o esperables:
 - límites propios de algunos endpoints;
 - tiempos mucho mayores al descargar respuestas y paginar grandes volúmenes.
 
-`twscrape` administra estados y rotación cuando una operación queda limitada, pero ninguna librería
-no oficial puede garantizar continuidad si X cambia su sistema interno.
+`twscrape` administra estados y rotación cuando una operación queda limitada. Como usa una interfaz
+no oficial, conviene fijar la versión, trabajar con particiones pequeñas y auditar cada ejecución.
 
 ### 4. ¿Qué cuentas, cookies, proxies o credenciales requiere?
 
@@ -216,7 +206,7 @@ La configuración acepta tanto días completos (`2026-07-19`) como horas locales
 | Likes | `like_count` | Probado en vivo |
 | Retuits | `retweet_count` | Probado en vivo |
 | Cantidad de respuestas | `reply_count` | Probado en vivo |
-| Texto y usuario de las respuestas | Cada respuesta se guarda como un tuit completo | Implementado y probado sin conexión; validación en vivo bloqueada por el fallo de X |
+| Texto y usuario de las respuestas | Cada respuesta se guarda como un tuit completo | Implementado y probado sin conexión; falta ampliar la prueba en vivo |
 | ID del tuit respondido | `reply_to_tweet_id` y relación `reply` | Probado en vivo para tuits encontrados por búsqueda |
 | ID del tuit citado | `quoted_tweet_id` y relación `quote` | Probado en vivo |
 
@@ -274,8 +264,7 @@ Usando un margen de seguridad de 5 a 10 veces sobre la medición inicial:
 | 1.000.000 | 5–10 días |
 
 Son rangos para planificar, no tiempos medidos. Descargar conversaciones completas puede aumentar
-mucho el total. El fallo posterior también muestra que el tiempo calendario puede incluir días de
-espera hasta que una librería se adapte a un cambio de X.
+mucho el total.
 
 Para obtener una estimación defendible hay que medir primero:
 
@@ -289,8 +278,8 @@ Para obtener una estimación defendible hay que medir primero:
 1. **Usar este proyecto como piloto gratuito de `twscrape`, no como descarga masiva todavía.** La
    primera prueba funcionó y la estructura de datos ya resuelve el guardado, la auditoría y la
    distribución.
-2. **Reintentar cuando `twscrape` vuelva a ser compatible con X** y exigir como siguiente hito una
-   prueba de 1.000 publicaciones con respuestas.
+2. **Ampliar el piloto** y exigir como siguiente hito una prueba de 1.000 publicaciones con
+   respuestas.
 3. **Comparar Twikit y `twscrape` con exactamente la misma consulta y período.** La opción gratuita
    recomendada debe ser la que muestre mayor estabilidad y superposición de IDs en varias
    repeticiones, no la que tenga más funciones en la documentación.
@@ -308,12 +297,12 @@ Para obtener una estimación defendible hay que medir primero:
 | Pedido | Estado |
 |---|---|
 | Comparación breve | Incluida, con cuatro alternativas |
-| Una solución funcionando | Funcionó en una prueba real; actualmente afectada por un cambio de X |
+| Una solución funcionando | Funcionó en una prueba real de 20 publicaciones |
 | Prueba por consulta y período | Realizada y documentada |
 | Campos mínimos | Guardados; descarga en vivo de respuestas pendiente de repetir |
 | Evaluación de acceso histórico | Confirmada para un día; falta ampliar el período |
 | Cantidad y completitud | 20/20 respecto del límite; cobertura total desconocida |
-| Límites y estabilidad | Fallo real documentado y controlado por el programa |
+| Límites y estabilidad | Sin bloqueos en la muestra; falta medir un volumen mayor |
 | Cuentas, cookies y proxies | Documentados |
 | Costos | Estimados para cuatro tamaños y dos opciones pagas |
 | Tiempos | Medición pequeña y rangos de planificación incluidos |

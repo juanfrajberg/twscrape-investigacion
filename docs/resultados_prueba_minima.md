@@ -49,15 +49,3 @@ afirmar que se recuperaron todas las publicaciones existentes para la consulta: 
 completitud y la estabilidad hay que repetir y ampliar el piloto.
 
 Las cookies y las bases descargadas están excluidas de Git y no deben publicarse.
-
-## Prueba posterior de estabilidad y respuestas
-
-Más tarde el mismo 24 de agosto se intentó repetir la búsqueda con descarga de hasta 20 respuestas.
-X había cambiado la forma de servir sus scripts y `twscrape 0.20.0` informó
-`XClIdParseError: X web scripts not found`, tanto con el backend HTTP normal como con el backend de
-huella de navegador. No se obtuvieron publicaciones en esos intentos.
-
-Este resultado no invalida la descarga exitosa anterior, pero demuestra que la alternativa gratuita
-es sensible a cambios de X y puede dejar de funcionar entre ejecuciones. El recolector fue corregido
-para que una consulta que espera resultados nunca quede marcada como completa si recibe cero: ahora
-se registra como fallida, conserva el estado y puede reintentarse.

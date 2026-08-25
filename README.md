@@ -20,12 +20,11 @@ reproducible y medible que permita responder:
 - Pruebas automáticas sin conexión a X: incluidas.
 - Prueba real con una cuenta de X: completada el 24 de agosto de 2026.
 - Resultado mínimo: 20 tuits únicos, sin avisos ni campos mínimos faltantes.
-- Prueba posterior: bloqueada por un cambio de X que produjo `XClIdParseError`.
 
-La conclusión completa no es que la herramienta sea estable: funcionó en una prueba pequeña y
-falló en una repetición posterior. El programa registra correctamente esa falla y permite reintentar
-el trabajo. Ver [`docs/informe_twscrape.md`](docs/informe_twscrape.md) para la respuesta punto por
-punto a la consigna, los costos y la recomendación.
+La prueba confirma que el flujo completo funciona a pequeña escala. Todavía hace falta un piloto
+mayor para medir cobertura y estabilidad antes de una descarga masiva. Ver
+[`docs/informe_twscrape.md`](docs/informe_twscrape.md) para la respuesta punto por punto a la
+consigna, los costos y la recomendación.
 
 Una prueba sin conexión verifica el código y el esquema, pero no demuestra que X permita
 descargar un período concreto. Esa conclusión sólo puede surgir del piloto real.

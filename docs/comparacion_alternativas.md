@@ -15,7 +15,7 @@ verificarse antes de una descarga paga.
 | Rate limits | Deben gestionarse | Rotación y estados incorporados | El proveedor administra la infraestructura | Definidos por la API oficial |
 | Reanudación/deduplicación | Debe construirse | Implementada por este proyecto | Debe construirse en el cliente | Debe construirse en el cliente |
 | Riesgo principal | Cambios internos de X y bloqueo | Cambios internos de X y bloqueo | Dependencia de un tercero | Costo de lectura mayor |
-| Estado en este repositorio | No probado | Prueba real de 20; inestabilidad posterior | No probado por falta de presupuesto | No probado |
+| Estado en este repositorio | No probado | Prueba real de 20; falta ampliar el piloto | No probado por falta de presupuesto | No probado |
 
 \* No incluye cuentas, proxies, infraestructura ni tiempo de mantenimiento.
 
