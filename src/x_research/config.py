@@ -19,8 +19,8 @@ class QuerySpec:
 
     def epoch_bounds(self, timezone_name: str) -> tuple[int, int]:
         timezone = ZoneInfo(timezone_name)
-        start = datetime.combine(date.fromisoformat(self.since), time.min, timezone)
-        end = datetime.combine(date.fromisoformat(self.until), time.min, timezone)
+        start = _parse_local_boundary(self.since).replace(tzinfo=timezone)
+        end = _parse_local_boundary(self.until).replace(tzinfo=timezone)
         return int(start.timestamp()), int(end.timestamp())
 
     def full_query_for(self, timezone_name: str) -> str:
@@ -38,6 +38,21 @@ class ExperimentConfig:
     reply_delay_seconds: float
     queries: tuple[QuerySpec, ...]
     timezone: str = "America/Argentina/Buenos_Aires"
+
+
+def _parse_local_boundary(value: str) -> datetime:
+    """Parsea una fecha o fecha-hora sin zona; la zona se aplica desde el experimento."""
+    try:
+        if "T" in value:
+            boundary = datetime.fromisoformat(value)
+            if boundary.tzinfo is not None:
+                raise ValueError("la fecha-hora no debe incluir zona ni desplazamiento UTC")
+            return boundary
+        return datetime.combine(date.fromisoformat(value), time.min)
+    except ValueError as error:
+        raise ValueError(
+            "usar YYYY-MM-DD o YYYY-MM-DDTHH:MM:SS sin zona horaria"
+        ) from error
 
 
 def _required_text(data: dict[str, Any], key: str, context: str) -> str:
@@ -61,9 +76,12 @@ def _parse_query(data: Any, index: int) -> QuerySpec:
 
     since = _required_text(data, "since", context)
     until = _required_text(data, "until", context)
-    since_date = date.fromisoformat(since)
-    until_date = date.fromisoformat(until)
-    if since_date >= until_date:
+    try:
+        since_boundary = _parse_local_boundary(since)
+        until_boundary = _parse_local_boundary(until)
+    except ValueError as error:
+        raise ValueError(f"{context}: fechas inválidas; {error}") from error
+    if since_boundary >= until_boundary:
         raise ValueError(f"{context}: 'since' debe ser anterior a 'until'")
 
     limit = _positive_int(data, "limit", context)

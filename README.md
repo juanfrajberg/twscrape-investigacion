@@ -20,6 +20,12 @@ reproducible y medible que permita responder:
 - Pruebas automáticas sin conexión a X: incluidas.
 - Prueba real con una cuenta de X: completada el 24 de agosto de 2026.
 - Resultado mínimo: 20 tuits únicos, sin avisos ni campos mínimos faltantes.
+- Prueba posterior: bloqueada por un cambio de X que produjo `XClIdParseError`.
+
+La conclusión completa no es que la herramienta sea estable: funcionó en una prueba pequeña y
+falló en una repetición posterior. El programa registra correctamente esa falla y permite reintentar
+el trabajo. Ver [`docs/informe_twscrape.md`](docs/informe_twscrape.md) para la respuesta punto por
+punto a la consigna, los costos y la recomendación.
 
 Una prueba sin conexión verifica el código y el esquema, pero no demuestra que X permita
 descargar un período concreto. Esa conclusión sólo puede surgir del piloto real.
@@ -73,9 +79,14 @@ pytest
 
 La configuración inicial está en `config/prueba_minima.json`: una consulta, un máximo de 20
 resultados y sin descarga de respuestas. Las fechas se interpretan en la zona horaria indicada
-por `timezone` (Buenos Aires de forma predeterminada). El programa las convierte a límites de
-hora exactos y descarta cualquier resultado que X entregue fuera del período. Por ejemplo, desde
-`2026-07-19` hasta `2026-07-20` incluye únicamente el 19 de julio en Argentina.
+por `timezone` (Buenos Aires de forma predeterminada). Se puede indicar un día completo con
+`YYYY-MM-DD` o una hora local con `YYYY-MM-DDTHH:MM:SS`. No se agrega una zona dentro del valor
+porque ya está definida para todo el experimento. El programa convierte esos límites a horas
+exactas y descarta cualquier resultado que X entregue fuera del período.
+
+Por ejemplo, desde `2026-07-19` hasta `2026-07-20` incluye únicamente el 19 de julio en Argentina.
+La configuración `config/franja_horaria.ejemplo.json` muestra cómo asignar a un nodo el intervalo
+de 00:00 a 06:00.
 
 ## 3. Agregar una sesión de X mediante cookies
 
@@ -179,4 +190,4 @@ Ver también:
 - `docs/esquema_datos.md`
 - `docs/resultados_prueba_minima.md`
 - `docs/comparacion_alternativas.md`
-- `docs/entregable_profesor.md`
+- `docs/informe_twscrape.md`

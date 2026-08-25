@@ -1,0 +1,18 @@
+{
+  "experiment_id": "nodo_argentina_2026_07_19_00_06",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "search_product": "Latest",
+  "download_replies": false,
+  "reply_source_limit": 0,
+  "replies_per_tweet": 0,
+  "reply_delay_seconds": 2.0,
+  "queries": [
+    {
+      "label": "argentina_00_06",
+      "text": "Argentina lang:es",
+      "since": "2026-07-19T00:00:00",
+      "until": "2026-07-19T06:00:00",
+      "limit": 100
+    }
+  ]
+}
