@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Entornos virtuales
+.venv*/
+venv/
+
+# Credenciales y sesiones de X
+accounts.db
+accounts.db-*
+data/accounts.db
+data/accounts.db-*
+*.cookies.json
+
+# Datos recolectados y exportaciones
+data/*.sqlite3
+data/*.sqlite3-*
+data/raw/*
+!data/raw/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
+
+# Sistema operativo / editores
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "x-research-twscrape"
+version = "0.1.0"
+description = "MVP reproducible para recolectar publicaciones públicas de X con twscrape"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+  "twscrape[curl]==0.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0,<10",
+  "pytest-asyncio>=0.23,<2",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+x-research = "x_research.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

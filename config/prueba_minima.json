@@ -1,0 +1,18 @@
+{
+  "experiment_id": "smoke_test_argentina_2026_07_19_exact_time",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "search_product": "Latest",
+  "download_replies": false,
+  "reply_source_limit": 0,
+  "replies_per_tweet": 0,
+  "reply_delay_seconds": 2.0,
+  "queries": [
+    {
+      "label": "argentina_campeon_es_minima",
+      "text": "\"Argentina campeón\" lang:es",
+      "since": "2026-07-19",
+      "until": "2026-07-20",
+      "limit": 20
+    }
+  ]
+}

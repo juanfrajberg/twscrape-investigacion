@@ -1,0 +1,25 @@
+{
+  "experiment_id": "piloto_argentina_2026_07_19_exact_time",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "search_product": "Latest",
+  "download_replies": true,
+  "reply_source_limit": 5,
+  "replies_per_tweet": 25,
+  "reply_delay_seconds": 2.0,
+  "queries": [
+    {
+      "label": "argentina_general_es",
+      "text": "Argentina lang:es",
+      "since": "2026-07-19",
+      "until": "2026-07-20",
+      "limit": 100
+    },
+    {
+      "label": "argentina_campeon_es",
+      "text": "\"Argentina campeón\" lang:es",
+      "since": "2026-07-19",
+      "until": "2026-07-20",
+      "limit": 100
+    }
+  ]
+}
