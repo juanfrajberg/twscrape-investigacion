@@ -39,7 +39,8 @@ La corrección tiene una prueba automática específica.
 El piloto confirma que `twscrape 0.20.1` puede recuperar 100 publicaciones únicas para la consulta
 y el período elegidos, guardando todos los campos mínimos evaluados. Las 31 respuestas de la tabla
 son publicaciones que aparecieron directamente en la búsqueda. Este piloto no recorrió las
-conversaciones para descargar respuestas adicionales; esa validación corresponde al próximo paso.
+conversaciones para descargar respuestas adicionales. Esa validación se realizó después y está
+documentada en [`resultados_piloto_hilos.md`](resultados_piloto_hilos.md).
 
 El CSV contiene 100 filas de datos y 26 columnas. Los datos y las cookies permanecen fuera de Git
 porque incluyen identificadores, textos y nombres de usuario.

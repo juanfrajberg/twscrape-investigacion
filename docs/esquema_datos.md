@@ -41,8 +41,28 @@ Aristas entre publicaciones:
 Incluye, cuando están disponibles, los IDs y usuarios de origen y destino. Esta tabla se puede usar
 posteriormente para construir un grafo.
 
+## Exportación de conversaciones
+
+`x-research export-threads-csv` crea una tabla plana apta para análisis. Una fila representa una
+publicación y todas las filas de la misma conversación comparten `conversation_id`.
+
+El orden es:
+
+1. `conversation_id`;
+2. `thread_depth`;
+3. fecha de publicación;
+4. ID del tuit.
+
+`thread_depth = 0` representa la raíz disponible, `1` una respuesta directa y los valores mayores
+respuestas anidadas. `parent_in_dataset` y `root_in_dataset` indican si el padre y la raíz están
+presentes en la base; esto evita interpretar como completo un hilo del que sólo se descargó una
+parte.
+
+El CSV incluye los campos solicitados para cada fila: ID, fecha, texto, autor, likes, retuits,
+cantidad de respuestas, ID y usuario respondido e ID y usuario citado. `capture_kind` distingue
+resultados encontrados por búsqueda de respuestas descargadas como contexto.
+
 ## `job_events`
 
 Advertencias y errores asociados con cada trabajo. Permite saber si una ejecución marcada como
 completa tuvo problemas al descargar respuestas particulares.
-

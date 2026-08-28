@@ -15,6 +15,7 @@ DEFAULT_ACCOUNTS_DB = Path("data/accounts.db")
 DEFAULT_DATABASE = Path("data/research.sqlite3")
 DEFAULT_RAW_JSONL = Path("data/raw/captures.jsonl")
 DEFAULT_CSV = Path("data/exports/tweets.csv")
+DEFAULT_THREADS_CSV = Path("data/exports/threads.csv")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -62,6 +63,17 @@ def build_parser() -> argparse.ArgumentParser:
     export = subparsers.add_parser("export-csv", help="Exportar los tuits únicos a CSV")
     export.add_argument("--database", type=Path, default=DEFAULT_DATABASE)
     export.add_argument("--output", type=Path, default=DEFAULT_CSV)
+
+    export_threads = subparsers.add_parser(
+        "export-threads-csv",
+        help="Exportar tuits agrupados y ordenados por conversación",
+    )
+    export_threads.add_argument("--database", type=Path, default=DEFAULT_DATABASE)
+    export_threads.add_argument("--output", type=Path, default=DEFAULT_THREADS_CSV)
+    export_threads.add_argument(
+        "--conversation-id",
+        help="Exportar solamente una conversación",
+    )
 
     return parser
 
@@ -137,6 +149,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "export-csv":
         count = ResearchStore(args.database).export_tweets_csv(args.output)
         print(f"Exportados {count} tuits únicos a {args.output}")
+        return 0
+
+    if args.command == "export-threads-csv":
+        count = ResearchStore(args.database).export_threads_csv(
+            args.output,
+            conversation_id=args.conversation_id,
+        )
+        print(f"Exportadas {count} filas ordenadas por conversación a {args.output}")
         return 0
 
     return 1

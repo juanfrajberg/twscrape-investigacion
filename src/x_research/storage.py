@@ -115,6 +115,34 @@ CREATE INDEX IF NOT EXISTS idx_captures_job_id ON captures(job_id);
 CREATE INDEX IF NOT EXISTS idx_relationships_target ON relationships(target_tweet_id);
 """
 
+THREAD_EXPORT_FIELDS = (
+    "conversation_id",
+    "thread_depth",
+    "tweet_id",
+    "created_at",
+    "text",
+    "author_id",
+    "author_username",
+    "author_display_name",
+    "like_count",
+    "retweet_count",
+    "reply_count",
+    "reply_to_tweet_id",
+    "reply_to_user_id",
+    "reply_to_username",
+    "quoted_tweet_id",
+    "quoted_user_id",
+    "quoted_username",
+    "quote_count",
+    "view_count",
+    "capture_kind",
+    "download_root_tweet_id",
+    "parent_in_dataset",
+    "root_in_dataset",
+    "language",
+    "url",
+)
+
 
 def utc_now() -> str:
     return datetime.now(UTC).isoformat()
@@ -601,6 +629,118 @@ class ResearchStore:
             writer.writeheader()
             writer.writerows(dict(row) for row in rows)
         return len(rows)
+
+    def export_threads_csv(
+        self,
+        output_path: str | Path,
+        *,
+        conversation_id: str | None = None,
+    ) -> int:
+        destination = Path(output_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+
+        where = ""
+        parameters: tuple[str, ...] = ()
+        if conversation_id:
+            where = "WHERE COALESCE(t.conversation_id, t.tweet_id) = ?"
+            parameters = (conversation_id,)
+
+        with self.connect() as database:
+            records = [
+                dict(row)
+                for row in database.execute(
+                    f"""
+                    SELECT
+                        COALESCE(t.conversation_id, t.tweet_id) AS conversation_id,
+                        t.tweet_id,
+                        t.created_at,
+                        t.text,
+                        t.author_id,
+                        u.username AS author_username,
+                        u.display_name AS author_display_name,
+                        t.like_count,
+                        t.retweet_count,
+                        t.reply_count,
+                        t.reply_to_tweet_id,
+                        t.reply_to_user_id,
+                        t.reply_to_username,
+                        t.quoted_tweet_id,
+                        t.quoted_user_id,
+                        t.quoted_username,
+                        t.quote_count,
+                        t.view_count,
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1 FROM captures AS reply_capture
+                                WHERE reply_capture.tweet_id = t.tweet_id
+                                  AND reply_capture.capture_kind = 'reply'
+                            ) THEN 'reply'
+                            ELSE 'search'
+                        END AS capture_kind,
+                        (
+                            SELECT MIN(NULLIF(root_capture.root_tweet_id, ''))
+                            FROM captures AS root_capture
+                            WHERE root_capture.tweet_id = t.tweet_id
+                        ) AS download_root_tweet_id,
+                        t.language,
+                        t.url
+                    FROM tweets AS t
+                    LEFT JOIN users AS u ON u.user_id = t.author_id
+                    {where}
+                    """,
+                    parameters,
+                ).fetchall()
+            ]
+
+        if not records:
+            destination.write_text("", encoding="utf-8")
+            return 0
+
+        by_id = {str(record["tweet_id"]): record for record in records}
+        depths: dict[str, int] = {}
+
+        def depth_for(tweet_id: str, trail: frozenset[str] = frozenset()) -> int:
+            if tweet_id in depths:
+                return depths[tweet_id]
+            record = by_id[tweet_id]
+            root_id = str(record["conversation_id"])
+            parent_id = record["reply_to_tweet_id"]
+            if tweet_id == root_id or not parent_id:
+                depth = 0
+            elif str(parent_id) in by_id and str(parent_id) not in trail:
+                depth = depth_for(str(parent_id), trail | {tweet_id}) + 1
+            else:
+                depth = 1
+            depths[tweet_id] = depth
+            return depth
+
+        for record in records:
+            tweet_id = str(record["tweet_id"])
+            parent_id = record["reply_to_tweet_id"]
+            root_id = str(record["conversation_id"])
+            record["thread_depth"] = depth_for(tweet_id)
+            record["parent_in_dataset"] = int(
+                bool(parent_id) and str(parent_id) in by_id
+            )
+            record["root_in_dataset"] = int(root_id in by_id)
+
+        records.sort(
+            key=lambda record: (
+                str(record["conversation_id"]),
+                int(record["thread_depth"]),
+                record["created_at"] or "",
+                str(record["tweet_id"]),
+            )
+        )
+
+        with destination.open("w", encoding="utf-8", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=THREAD_EXPORT_FIELDS)
+            writer.writeheader()
+            writer.writerows(
+                {field: record.get(field) for field in THREAD_EXPORT_FIELDS}
+                for record in records
+            )
+        return len(records)
 
 
 def write_jsonl_records(path: str | Path, records: Iterable[dict[str, Any]]) -> None:

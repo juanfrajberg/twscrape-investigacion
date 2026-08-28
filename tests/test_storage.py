@@ -1,3 +1,5 @@
+import csv
+from dataclasses import replace
 from datetime import UTC, datetime
 
 from x_research.config import ExperimentConfig, QuerySpec
@@ -179,3 +181,50 @@ def test_merges_databases_without_duplicating_tweets(tmp_path):
         assert database.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 2
         assert database.execute("SELECT COUNT(*) FROM captures").fetchone()[0] == 2
         assert database.execute("SELECT COUNT(*) FROM relationships").fetchone()[0] == 1
+
+
+def test_exports_threads_grouped_and_ordered(tmp_path):
+    store = ResearchStore(tmp_path / "research.sqlite3")
+    config, query = experiment()
+    job_id, _ = store.prepare_job(
+        config,
+        query,
+        machine="test",
+        twscrape_version="0.20.1",
+    )
+    root = replace(
+        sample_tweet("100"),
+        created_at="2026-07-19T18:00:00+00:00",
+        conversation_id="100",
+        reply_to_tweet_id=None,
+        reply_to_user_id=None,
+        reply_to_username=None,
+    )
+    direct_reply = replace(
+        sample_tweet("101"),
+        created_at="2026-07-19T18:10:00+00:00",
+        conversation_id="100",
+        reply_to_tweet_id="100",
+    )
+    nested_reply = replace(
+        sample_tweet("102"),
+        created_at="2026-07-19T18:20:00+00:00",
+        conversation_id="100",
+        reply_to_tweet_id="101",
+    )
+    store.record_tweet(job_id, nested_reply, capture_kind="reply", root_tweet_id="100")
+    store.record_tweet(job_id, root, capture_kind="search")
+    store.record_tweet(job_id, direct_reply, capture_kind="reply", root_tweet_id="100")
+
+    output = tmp_path / "threads.csv"
+    count = store.export_threads_csv(output, conversation_id="100")
+
+    with output.open(encoding="utf-8", newline="") as file:
+        rows = list(csv.DictReader(file))
+
+    assert count == 3
+    assert [row["tweet_id"] for row in rows] == ["100", "101", "102"]
+    assert [row["thread_depth"] for row in rows] == ["0", "1", "2"]
+    assert rows[0]["capture_kind"] == "search"
+    assert rows[1]["capture_kind"] == "reply"
+    assert rows[2]["reply_to_tweet_id"] == "101"

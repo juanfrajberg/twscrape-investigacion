@@ -1,0 +1,19 @@
+{
+  "experiment_id": "piloto_hilos_argentina_2026_07_19",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "search_product": "Latest",
+  "download_replies": true,
+  "reply_source_limit": 5,
+  "replies_per_tweet": 10,
+  "reply_delay_seconds": 1.0,
+  "queries": [
+    {
+      "label": "argentina_campeon_es_hilos",
+      "text": "\"Argentina campeón\" lang:es",
+      "since": "2026-07-19",
+      "until": "2026-07-20",
+      "limit": 100,
+      "minimum_results": 100
+    }
+  ]
+}

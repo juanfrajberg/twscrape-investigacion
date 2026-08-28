@@ -22,6 +22,8 @@ reproducible y medible que permita responder:
 - Resultado mínimo: 20 tuits únicos, sin avisos ni campos mínimos faltantes.
 - Piloto ampliado con `twscrape 0.20.1`: 100 tuits únicos, 84 autores y cero campos
   mínimos faltantes, completado el 28 de agosto de 2026.
+- Piloto de conversaciones: 100 resultados de búsqueda y 50 respuestas descargadas, agrupados en
+  95 conversaciones y exportados con 25 campos.
 
 La prueba confirma que el flujo completo funciona a pequeña escala. Todavía hace falta un piloto
 mayor para medir cobertura y estabilidad antes de una descarga masiva. Ver
@@ -158,12 +160,32 @@ x-research collect --force
 x-research summary
 x-research audit
 x-research export-csv
+x-research export-threads-csv
 ```
 
 `audit` produce un resumen JSON con volumen, autores, fechas mínima y máxima en horario argentino,
-campos faltantes, tipos de relación, capturas y estado de los trabajos. El CSV queda en
+campos faltantes, tipos de relación, capturas y estado de los trabajos. El CSV general queda en
 `data/exports/tweets.csv`. Los datos no se versionan automáticamente porque pueden contener
 identificadores y nombres de usuarios.
+
+Para exportar las publicaciones agrupadas por `conversation_id`, con el tuit raíz primero y las
+respuestas ordenadas por nivel y fecha:
+
+```bash
+x-research export-threads-csv
+```
+
+El resultado queda en `data/exports/threads.csv`. Cada fila es una publicación completa e incluye
+`thread_depth`, `reply_to_tweet_id`, texto, usuario, métricas y el ID citado. Para exportar una sola
+conversación:
+
+```bash
+x-research export-threads-csv --conversation-id ID_DE_CONVERSACION
+```
+
+El filtro agrupa solamente lo que ya está en la base. Para incorporar respuestas adicionales hay
+que ejecutar previamente una configuración con `download_replies: true`, como
+`config/piloto_hilos.json`.
 
 Para unir bases recolectadas en computadoras diferentes:
 
@@ -198,5 +220,6 @@ Ver también:
 - `docs/esquema_datos.md`
 - `docs/resultados_prueba_minima.md`
 - `docs/resultados_piloto_100.md`
+- `docs/resultados_piloto_hilos.md`
 - `docs/comparacion_alternativas.md`
 - `docs/informe_twscrape.md`

@@ -150,15 +150,26 @@ async def _collect_replies(
         if not root_id:
             continue
         try:
-            stream = api.tweet_replies(int(root_id), limit=experiment.replies_per_tweet)
+            stream = api.tweet_replies(
+                int(root_id),
+                limit=max(experiment.replies_per_tweet * 5, 100),
+            )
             root_fetched = 0
+            root_seen: set[str] = set()
             async with aclosing(stream) as replies:
                 async for reply in replies:
                     if root_fetched >= experiment.replies_per_tweet:
                         break
+                    normalized = normalize_tweet(reply)
+                    if (
+                        normalized.tweet_id == root_id
+                        or normalized.tweet_id in root_seen
+                    ):
+                        duplicates += 1
+                        continue
+                    root_seen.add(normalized.tweet_id)
                     root_fetched += 1
                     fetched += 1
-                    normalized = normalize_tweet(reply)
                     added = store.record_tweet(
                         job_id,
                         normalized,

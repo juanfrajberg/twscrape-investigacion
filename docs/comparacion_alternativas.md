@@ -1,6 +1,6 @@
 # Comparación de alternativas para recolectar datos de X
 
-Evaluación actualizada el 24 de agosto de 2026. Se comparan las tres opciones propuestas para el
+Evaluación actualizada el 28 de agosto de 2026. Se comparan las tres opciones propuestas para el
 proyecto y la API oficial de X como referencia adicional. Los precios pueden cambiar y deben
 verificarse antes de una descarga paga.
 
@@ -10,12 +10,12 @@ verificarse antes de una descarga paga.
 | Costo base de lectura | USD 0* | USD 0* | USD 0,15 por 1.000 tuits | USD 5 por 1.000 publicaciones |
 | Autenticación | Cuenta, login/cookies | Cuenta y cookies; pool en SQLite | Clave del servicio | Cuenta de desarrollador y clave de X |
 | Búsqueda | Sí | Sí | Sí | Sí, según endpoint y acceso |
-| Respuestas | Funciones disponibles; no probado aquí | Integrado; prueba en vivo pendiente de repetir | Endpoints administrados | Endpoints oficiales según acceso |
+| Respuestas | Funciones disponibles; no probado aquí | Integrado y probado en vivo con 50 respuestas | Endpoints administrados | Endpoints oficiales según acceso |
 | Varias cuentas/proxies | Debe organizarse en el cliente | Soporte incorporado | No requiere cuentas propias de X | No trabaja con cuentas de scraping |
 | Rate limits | Deben gestionarse | Rotación y estados incorporados | El proveedor administra la infraestructura | Definidos por la API oficial |
 | Reanudación/deduplicación | Debe construirse | Implementada por este proyecto | Debe construirse en el cliente | Debe construirse en el cliente |
 | Riesgo principal | Cambios internos de X y bloqueo | Cambios internos de X y bloqueo | Dependencia de un tercero | Costo de lectura mayor |
-| Estado en este repositorio | No probado | Prueba real de 20; falta ampliar el piloto | No probado por falta de presupuesto | No probado |
+| Estado en este repositorio | No probado | Piloto real de 100 búsquedas más 50 respuestas | No probado por falta de presupuesto | No probado |
 
 \* No incluye cuentas, proxies, infraestructura ni tiempo de mantenimiento.
 

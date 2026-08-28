@@ -1,6 +1,6 @@
 # Prueba de twscrape para armar la base de X
 
-Última actualización: 24 de agosto de 2026.
+Última actualización: 28 de agosto de 2026.
 
 ## Qué se probó
 
@@ -28,9 +28,9 @@ con 20 IDs únicos y todos los campos mínimos presentes. También se comprobó 
 reconocer un trabajo ya terminado y evitar duplicarlo.
 
 La prueba demuestra que `twscrape` puede recuperar los datos pedidos y que la estructura construida
-alrededor de la librería sirve para organizar la base. Como la muestra fue pequeña, antes de una
-descarga masiva hace falta ampliar el piloto para medir cobertura, estabilidad y comportamiento con
-respuestas.
+alrededor de la librería sirve para organizar la base. Un piloto posterior amplió la muestra a 100
+resultados y descargó 50 respuestas completas. Antes de una descarga masiva todavía hace falta
+medir cobertura y estabilidad con un volumen mayor.
 
 ## Resultados de la prueba real
 
@@ -206,7 +206,7 @@ La configuración acepta tanto días completos (`2026-07-19`) como horas locales
 | Likes | `like_count` | Probado en vivo |
 | Retuits | `retweet_count` | Probado en vivo |
 | Cantidad de respuestas | `reply_count` | Probado en vivo |
-| Texto y usuario de las respuestas | Cada respuesta se guarda como un tuit completo | Implementado y probado sin conexión; falta ampliar la prueba en vivo |
+| Texto y usuario de las respuestas | Cada respuesta se guarda como un tuit completo | Probado en vivo con 50 respuestas |
 | ID del tuit respondido | `reply_to_tweet_id` y relación `reply` | Probado en vivo para tuits encontrados por búsqueda |
 | ID del tuit citado | `quoted_tweet_id` y relación `quote` | Probado en vivo |
 
@@ -297,11 +297,11 @@ Para obtener una estimación defendible hay que medir primero:
 | Pedido | Estado |
 |---|---|
 | Comparación breve | Incluida, con cuatro alternativas |
-| Una solución funcionando | Funcionó en una prueba real de 20 publicaciones |
+| Una solución funcionando | Piloto real de 100 búsquedas más 50 respuestas |
 | Prueba por consulta y período | Realizada y documentada |
-| Campos mínimos | Guardados; descarga en vivo de respuestas pendiente de repetir |
+| Campos mínimos | Guardados y validados, incluidas 50 respuestas completas |
 | Evaluación de acceso histórico | Confirmada para un día; falta ampliar el período |
-| Cantidad y completitud | 20/20 respecto del límite; cobertura total desconocida |
+| Cantidad y completitud | 100/100 respecto del límite más 50 respuestas; cobertura total desconocida |
 | Límites y estabilidad | Sin bloqueos en la muestra; falta medir un volumen mayor |
 | Cuentas, cookies y proxies | Documentados |
 | Costos | Estimados para cuatro tamaños y dos opciones pagas |
