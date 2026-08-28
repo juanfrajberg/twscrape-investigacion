@@ -20,6 +20,8 @@ reproducible y medible que permita responder:
 - Pruebas automáticas sin conexión a X: incluidas.
 - Prueba real con una cuenta de X: completada el 24 de agosto de 2026.
 - Resultado mínimo: 20 tuits únicos, sin avisos ni campos mínimos faltantes.
+- Piloto ampliado con `twscrape 0.20.1`: 100 tuits únicos, 84 autores y cero campos
+  mínimos faltantes, completado el 28 de agosto de 2026.
 
 La prueba confirma que el flujo completo funciona a pequeña escala. Todavía hace falta un piloto
 mayor para medir cobertura y estabilidad antes de una descarga masiva. Ver
@@ -67,7 +69,7 @@ source .venv/bin/activate
 python -m pip install ".[dev]"
 ```
 
-La dependencia principal está fijada en `twscrape==0.20.0` para poder reproducir los resultados.
+La dependencia principal está fijada en `twscrape==0.20.1` para poder reproducir los resultados.
 
 ## 2. Validar el experimento sin conectarse a X
 
@@ -126,6 +128,13 @@ Si esa prueba termina correctamente, ejecutar el piloto ampliado. Éste contiene
 
 ```bash
 x-research collect --config config/experimento.ejemplo.json
+```
+
+También hay una configuración intermedia que exige exactamente 100 IDs únicos y no descarga
+respuestas adicionales:
+
+```bash
+x-research collect --config config/piloto_100.json
 ```
 
 Resultados locales:
@@ -188,5 +197,6 @@ Ver también:
 - `docs/protocolo_prueba.md`
 - `docs/esquema_datos.md`
 - `docs/resultados_prueba_minima.md`
+- `docs/resultados_piloto_100.md`
 - `docs/comparacion_alternativas.md`
 - `docs/informe_twscrape.md`

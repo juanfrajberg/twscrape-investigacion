@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = [
-  "twscrape[curl]==0.20.0",
+  "twscrape[curl]==0.20.1",
 ]
 
 [project.optional-dependencies]

@@ -84,7 +84,7 @@ async def test_collects_search_and_reply_without_duplicates(tmp_path):
     )
 
     assert reports[0]["status"] == "completed"
-    assert reports[0]["fetched"] == 3
+    assert reports[0]["fetched"] == 2
     assert reports[0]["duplicates"] == 1
     assert reports[0]["filtered_outside_window"] == 1
     with sqlite3.connect(database_path) as database:
@@ -127,3 +127,45 @@ async def test_zero_results_marks_job_as_failed(tmp_path):
         ).fetchone()
     assert status == "failed"
     assert "0 resultados" in error
+
+
+class DuplicateThenUniqueAPI:
+    async def search(self, query, limit, kv):
+        yield tweet("200")
+        yield tweet("200")
+        yield tweet("201")
+
+
+@pytest.mark.asyncio
+async def test_search_continues_until_unique_limit(tmp_path):
+    query = QuerySpec(
+        label="unique-limit",
+        text="Argentina",
+        since="2026-07-19",
+        until="2026-07-20",
+        limit=2,
+        minimum_results=2,
+    )
+    config = ExperimentConfig(
+        experiment_id="unique-limit",
+        search_product="Latest",
+        download_replies=False,
+        reply_source_limit=0,
+        replies_per_tweet=0,
+        reply_delay_seconds=0,
+        queries=(query,),
+    )
+    database_path = tmp_path / "research.sqlite3"
+
+    reports = await collect_experiment(
+        config,
+        accounts_db=tmp_path / "accounts.db",
+        database_path=database_path,
+        raw_jsonl=tmp_path / "captures.jsonl",
+        api=DuplicateThenUniqueAPI(),
+    )
+
+    assert reports[0]["fetched"] == 2
+    assert reports[0]["duplicates"] == 1
+    with sqlite3.connect(database_path) as database:
+        assert database.execute("SELECT COUNT(*) FROM tweets").fetchone()[0] == 2

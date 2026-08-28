@@ -76,16 +76,18 @@ async def _collect_search(
 
     async with aclosing(stream) as results:
         async for tweet in results:
-            if fetched >= query.limit:
+            if len(seed_ids) >= query.limit:
                 break
             normalized = normalize_tweet(tweet)
             if not _is_in_window(normalized.created_at, start_epoch, end_epoch):
                 filtered_outside_window += 1
                 continue
+            if normalized.tweet_id in seed_ids:
+                duplicates += 1
+                continue
+            seeds.append(tweet)
+            seed_ids.add(normalized.tweet_id)
             fetched += 1
-            if normalized.tweet_id not in seed_ids:
-                seeds.append(tweet)
-                seed_ids.add(normalized.tweet_id)
             added = store.record_tweet(job_id, normalized, capture_kind="search")
             if added:
                 write_jsonl_records(
