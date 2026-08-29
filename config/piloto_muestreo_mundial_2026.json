@@ -1,0 +1,44 @@
+{
+  "experiment_id": "piloto_muestreo_mundial_2026",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "search_product": "Latest",
+  "download_replies": false,
+  "reply_source_limit": 0,
+  "replies_per_tweet": 0,
+  "reply_delay_seconds": 0,
+  "queries": [
+    {
+      "label": "dia_normal",
+      "query_family": "argentina_mundial",
+      "corpus_layer": "core",
+      "text": "(Argentina OR Argentine OR argentinos OR Albiceleste) (Mundial OR WorldCup OR \"World Cup\" OR FIFA)",
+      "since": "2026-06-13T12:00:00",
+      "until": "2026-06-13T13:00:00",
+      "limit": 100,
+      "minimum_results": 20,
+      "minimum_window_minutes": 10
+    },
+    {
+      "label": "partido_argentina_suiza",
+      "query_family": "partidos_argentina",
+      "corpus_layer": "core",
+      "text": "(Argentina OR Messi) (Suiza OR Switzerland OR Mundial OR WorldCup)",
+      "since": "2026-07-11T19:00:00",
+      "until": "2026-07-11T21:00:00",
+      "limit": 100,
+      "minimum_results": 20,
+      "minimum_window_minutes": 10
+    },
+    {
+      "label": "final_argentina_espana",
+      "query_family": "partidos_argentina",
+      "corpus_layer": "core",
+      "text": "(Argentina OR Messi) (España OR Spain OR Final OR Mundial OR WorldCup)",
+      "since": "2026-07-19T15:00:00",
+      "until": "2026-07-19T17:00:00",
+      "limit": 100,
+      "minimum_results": 20,
+      "minimum_window_minutes": 10
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "campaign_id": "mundial_2026_argentina",
+  "description": "Conversación mundial y multilingüe sobre Argentina durante el Mundial 2026, con dos días de margen antes y después.",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "since": "2026-06-09",
+  "until": "2026-07-22",
+  "search_product": "Latest",
+  "default_window_minutes": 360,
+  "limit_per_job": 1000,
+  "minimum_window_minutes": 10,
+  "queries": [
+    {
+      "label": "argentina_mundial",
+      "text": "(Argentina OR Argentine OR argentinos OR Albiceleste) (Mundial OR WorldCup OR \"World Cup\" OR FIFA)",
+      "corpus_layer": "core",
+      "window_minutes": 360,
+      "minimum_results": 0
+    },
+    {
+      "label": "seleccion_figuras",
+      "text": "(\"Selección Argentina\" OR \"Seleccion Argentina\" OR Messi OR Scaloni OR \"Dibu Martínez\" OR \"Dibu Martinez\") (Mundial OR WorldCup OR \"World Cup\" OR FIFA)",
+      "corpus_layer": "core",
+      "window_minutes": 360,
+      "minimum_results": 0
+    },
+    {
+      "label": "partidos_argentina",
+      "text": "Argentina (vs OR contra OR v) (Argelia OR Algeria OR Austria OR Jordania OR Jordan OR \"Cabo Verde\" OR \"Cape Verde\" OR Egipto OR Egypt OR Suiza OR Switzerland OR Inglaterra OR England OR España OR Spain)",
+      "corpus_layer": "core",
+      "window_minutes": 360,
+      "minimum_results": 0
+    },
+    {
+      "label": "futbol_arbitraje",
+      "text": "(Argentina OR Messi) (ArgenFIFA OR amañado OR amanado OR robado OR trampa OR cheat OR rigged OR referee OR arbitro OR árbitro OR VAR)",
+      "corpus_layer": "thematic",
+      "window_minutes": 1440,
+      "minimum_results": 0
+    },
+    {
+      "label": "racismo",
+      "text": "(Argentina OR argentinos OR Argentine) (racismo OR racista OR racist OR racism OR \"se creen europeos\" OR \"not latino\")",
+      "corpus_layer": "thematic",
+      "window_minutes": 1440,
+      "minimum_results": 0
+    },
+    {
+      "label": "israel_palestina",
+      "text": "(Argentina OR Messi OR Milei) (Israel OR Palestina OR Palestine OR Gaza OR sionista OR zionist)",
+      "corpus_layer": "thematic",
+      "window_minutes": 1440,
+      "minimum_results": 0
+    },
+    {
+      "label": "malvinas",
+      "text": "(Argentina OR argentinos OR Argentine) (Malvinas OR Falklands OR Belgrano)",
+      "corpus_layer": "thematic",
+      "window_minutes": 1440,
+      "minimum_results": 0
+    },
+    {
+      "label": "nazismo",
+      "text": "(Argentina OR argentinos OR Argentine) (nazi OR nazis OR Hitler OR Eichmann OR Mengele)",
+      "corpus_layer": "thematic",
+      "window_minutes": 1440,
+      "minimum_results": 0
+    },
+    {
+      "label": "economia_hambre",
+      "text": "(Argentina OR argentinos OR Argentine) (hambrientina OR hambre OR poverty OR pobreza OR inflacion OR inflación OR FMI OR IMF)",
+      "corpus_layer": "thematic",
+      "window_minutes": 1440,
+      "minimum_results": 0
+    },
+    {
+      "label": "antiargentina",
+      "text": "(\"anti Argentina\" OR antiargentina OR \"anti-Argentina\" OR \"Anti Argentina campaign\" OR \"campaña anti Argentina\")",
+      "corpus_layer": "thematic",
+      "window_minutes": 1440,
+      "minimum_results": 0
+    }
+  ],
+  "window_overrides": [
+    {
+      "label": "argentina_argelia",
+      "since": "2026-06-16",
+      "until": "2026-06-17",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    },
+    {
+      "label": "argentina_austria",
+      "since": "2026-06-22",
+      "until": "2026-06-23",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    },
+    {
+      "label": "argentina_jordania",
+      "since": "2026-06-27",
+      "until": "2026-06-28",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    },
+    {
+      "label": "argentina_cabo_verde",
+      "since": "2026-07-03",
+      "until": "2026-07-04",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    },
+    {
+      "label": "argentina_egipto",
+      "since": "2026-07-07",
+      "until": "2026-07-08",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    },
+    {
+      "label": "argentina_suiza",
+      "since": "2026-07-11",
+      "until": "2026-07-12",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    },
+    {
+      "label": "argentina_inglaterra",
+      "since": "2026-07-15",
+      "until": "2026-07-16",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    },
+    {
+      "label": "final",
+      "since": "2026-07-19",
+      "until": "2026-07-20",
+      "window_minutes": 60,
+      "query_families": []
+    },
+    {
+      "label": "pico_final",
+      "since": "2026-07-19T12:00:00",
+      "until": "2026-07-20T06:00:00",
+      "window_minutes": 15,
+      "query_families": []
+    },
+    {
+      "label": "post_final",
+      "since": "2026-07-20",
+      "until": "2026-07-22",
+      "window_minutes": 60,
+      "query_families": ["argentina_mundial", "seleccion_figuras", "partidos_argentina"]
+    }
+  ]
+}

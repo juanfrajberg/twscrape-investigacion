@@ -113,3 +113,28 @@ def test_rejects_datetime_with_embedded_timezone(tmp_path):
 
     with pytest.raises(ValueError, match="sin zona horaria"):
         load_config(path)
+
+
+def test_thread_layer_requires_conversation_id(tmp_path):
+    path = tmp_path / "thread.json"
+    path.write_text(
+        json.dumps(
+            {
+                "experiment_id": "thread",
+                "queries": [
+                    {
+                        "label": "thread",
+                        "text": "conversation_id:100",
+                        "since": "2026-07-19",
+                        "until": "2026-07-20",
+                        "limit": 100,
+                        "corpus_layer": "thread",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="conversation_id"):
+        load_config(path)

@@ -1,6 +1,6 @@
 # Comparación de alternativas para recolectar datos de X
 
-Evaluación actualizada el 28 de agosto de 2026. Se comparan las tres opciones propuestas para el
+Evaluación actualizada el 29 de agosto de 2026. Se comparan las tres opciones propuestas para el
 proyecto y la API oficial de X como referencia adicional. Los precios pueden cambiar y deben
 verificarse antes de una descarga paga.
 
@@ -15,7 +15,7 @@ verificarse antes de una descarga paga.
 | Rate limits | Deben gestionarse | Rotación y estados incorporados | El proveedor administra la infraestructura | Definidos por la API oficial |
 | Reanudación/deduplicación | Debe construirse | Implementada por este proyecto | Debe construirse en el cliente | Debe construirse en el cliente |
 | Riesgo principal | Cambios internos de X y bloqueo | Cambios internos de X y bloqueo | Dependencia de un tercero | Costo de lectura mayor |
-| Estado en este repositorio | No probado | Piloto real de 100 búsquedas más 50 respuestas | No probado por falta de presupuesto | No probado |
+| Estado en este repositorio | No probado | Pilotos de hilos y muestreo temporal; campaña de 2.160 trabajos preparada | No probado por falta de presupuesto | No probado |
 
 \* No incluye cuentas, proxies, infraestructura ni tiempo de mantenimiento.
 

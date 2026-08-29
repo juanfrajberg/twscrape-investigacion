@@ -1,225 +1,196 @@
-# Recolección de X con twscrape
+# Investigación de conversación sobre Argentina en X
 
-Repositorio independiente para probar `twscrape` como alternativa de recolección de
-publicaciones públicas de X en el proyecto académico sobre conversaciones vinculadas con
-Argentina durante el Mundial 2026.
+Este repositorio permite recolectar publicaciones públicas de X con twscrape, registrar el
+avance de una descarga grande, retomarla, repartirla entre computadoras y reconstruir hilos mediante
+conversation_id.
 
-El objetivo inmediato no es descargar una base masiva. Es ejecutar un piloto pequeño,
-reproducible y medible que permita responder:
+El caso preparado es la conversación mundial y multilingüe sobre Argentina durante el Mundial
+2026, desde el **9 de junio hasta el 21 de julio inclusive**. El corpus principal y las búsquedas
+temáticas se guardan como capas diferentes para no distorsionar los análisis.
 
-- si la búsqueda histórica funciona para las fechas elegidas;
-- cuántos resultados únicos aparecen;
-- qué campos se recuperan;
-- si se pueden descargar respuestas;
-- qué errores, bloqueos y tiempos aparecen;
-- si una ejecución interrumpida puede repetirse sin duplicar la base.
+## Empezar en cinco pasos
 
-## Estado
+### 1. Preparar el proyecto
 
-- Implementación del MVP: completa.
-- Pruebas automáticas sin conexión a X: incluidas.
-- Prueba real con una cuenta de X: completada el 24 de agosto de 2026.
-- Resultado mínimo: 20 tuits únicos, sin avisos ni campos mínimos faltantes.
-- Piloto ampliado con `twscrape 0.20.1`: 100 tuits únicos, 84 autores y cero campos
-  mínimos faltantes, completado el 28 de agosto de 2026.
-- Piloto de conversaciones: 100 resultados de búsqueda y 50 respuestas descargadas, agrupados en
-  95 conversaciones y exportados con 25 campos.
-
-La prueba confirma que el flujo completo funciona a pequeña escala. Todavía hace falta un piloto
-mayor para medir cobertura y estabilidad antes de una descarga masiva. Ver
-[`docs/informe_twscrape.md`](docs/informe_twscrape.md) para la respuesta punto por punto a la
-consigna, los costos y la recomendación.
-
-Una prueba sin conexión verifica el código y el esquema, pero no demuestra que X permita
-descargar un período concreto. Esa conclusión sólo puede surgir del piloto real.
-
-## Qué guarda
-
-Para cada publicación se registran:
-
-- ID, fecha, texto, idioma y URL;
-- ID, usuario y nombre visible del autor;
-- likes, retuits, respuestas, citas y visualizaciones;
-- ID de conversación;
-- ID y usuario del tuit respondido;
-- ID y usuario del tuit citado;
-- ID y usuario del tuit retuiteado;
-- hashtags;
-- consulta y trabajo mediante los cuales fue encontrada.
-
-Las respuestas descargadas son publicaciones completas: conservan su texto, autor y vínculo con
-el tuit padre.
-
-## Estructura
-
-```text
-config/                         configuración del piloto
-data/raw/                       registros JSONL (no se suben a Git)
-data/exports/                   exportaciones CSV (no se suben a Git)
-docs/                           protocolo y esquema
-src/x_research/                 código fuente
-tests/                          pruebas sin conexión
-```
-
-## 1. Preparar Python
-
-Desde la raíz del repositorio:
-
-```bash
+~~~bash
+git clone https://github.com/juanfrajberg/twscrape-investigacion.git
+cd twscrape-investigacion
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install ".[dev]"
-```
+python -m pip install ".[dev,mass]"
+~~~
 
-La dependencia principal está fijada en `twscrape==0.20.1` para poder reproducir los resultados.
+En Windows, la activación del entorno es:
 
-## 2. Validar el experimento sin conectarse a X
+~~~powershell
+.venv\Scripts\activate
+~~~
 
-```bash
-x-research validate-config
+### 2. Comprobar el código sin conectarse a X
+
+~~~bash
 pytest
-```
+x-research validate-campaign
+~~~
 
-La configuración inicial está en `config/prueba_minima.json`: una consulta, un máximo de 20
-resultados y sin descarga de respuestas. Las fechas se interpretan en la zona horaria indicada
-por `timezone` (Buenos Aires de forma predeterminada). Se puede indicar un día completo con
-`YYYY-MM-DD` o una hora local con `YYYY-MM-DDTHH:MM:SS`. No se agrega una zona dentro del valor
-porque ya está definida para todo el experimento. El programa convierte esos límites a horas
-exactas y descarta cualquier resultado que X entregue fuera del período.
+La validación debe informar 2.160 trabajos: 1.278 del corpus principal y 882 temáticos.
 
-Por ejemplo, desde `2026-07-19` hasta `2026-07-20` incluye únicamente el 19 de julio en Argentina.
-La configuración `config/franja_horaria.ejemplo.json` muestra cómo asignar a un nodo el intervalo
-de 00:00 a 06:00.
+### 3. Agregar una sesión de X
 
-## 3. Agregar una sesión de X mediante cookies
-
-`twscrape` necesita una cuenta autorizada. La opción recomendada por el proyecto es reutilizar
-una sesión del navegador mediante las cookies `auth_token` y `ct0`.
-
-```bash
+~~~bash
 twscrape --db data/accounts.db add_cookie cuenta_investigacion
-```
+~~~
 
-El comando pedirá las cookies sin mostrarlas en pantalla. El formato es:
+Cuando lo pida, pegar las dos cookies juntas en una sola línea:
 
-```text
+~~~text
 auth_token=VALOR; ct0=VALOR
-```
+~~~
 
-Después se puede comprobar el estado local de la cuenta:
+Luego comprobar la cuenta:
 
-```bash
+~~~bash
 twscrape --db data/accounts.db accounts
-```
+~~~
 
-`data/accounts.db` contiene la sesión y está excluido de Git. Nunca debe compartirse, enviarse por
-WhatsApp ni subirse al repositorio. Es preferible usar una cuenta aprobada para la investigación y
-no una cuenta personal principal. `twscrape` usa una interfaz no oficial de X y existe riesgo de
-bloqueo. El recolector desactiva por defecto la telemetría opcional de `twscrape`.
+El archivo data/accounts.db contiene credenciales y nunca se sube a Git.
 
-## 4. Ejecutar la prueba mínima
+### 4. Ejecutar primero el piloto
 
-La primera ejecución busca sólo 20 publicaciones y no descarga respuestas:
+~~~bash
+x-research collect \
+  --config config/piloto_muestreo_mundial_2026.json \
+  --database data/piloto_muestreo.sqlite3 \
+  --raw-jsonl data/raw/piloto_muestreo.jsonl
+~~~
 
-```bash
-x-research collect
-```
+El piloto toma tres franjas: un día normal, un partido de Argentina y la final.
 
-Si esa prueba termina correctamente, ejecutar el piloto ampliado. Éste contiene dos consultas de
-100 publicaciones y descarga hasta 25 respuestas de los 5 tuits con más respuestas:
+~~~bash
+x-research summary --database data/piloto_muestreo.sqlite3
+x-research audit --database data/piloto_muestreo.sqlite3
+~~~
 
-```bash
-x-research collect --config config/experimento.ejemplo.json
-```
+### 5. Probar tres trabajos de la campaña completa
 
-También hay una configuración intermedia que exige exactamente 100 IDs únicos y no descarga
-respuestas adicionales:
+~~~bash
+x-research collect-campaign \
+  --campaign config/campania_mundial_2026.json \
+  --database data/mundial_2026.sqlite3 \
+  --raw-dir data/raw/mundial_2026 \
+  --max-jobs 3
+~~~
 
-```bash
-x-research collect --config config/piloto_100.json
-```
+Si esos trabajos terminan bien, la campaña completa se ejecuta quitando --max-jobs 3 y
+agregando --auto-refine:
 
-Resultados locales:
+~~~bash
+x-research collect-campaign \
+  --campaign config/campania_mundial_2026.json \
+  --database data/mundial_2026.sqlite3 \
+  --raw-dir data/raw/mundial_2026 \
+  --auto-refine
+~~~
 
-- `data/research.sqlite3`: base normalizada y estado de los trabajos;
-- `data/raw/captures.jsonl`: registros capturados, uno por línea.
+Se puede interrumpir y volver a ejecutar el mismo comando. Los trabajos completos se omiten y los
+interrumpidos se repiten sin duplicar publicaciones.
 
-Los trabajos completados se omiten en la siguiente ejecución. Si un trabajo falla, puede volver a
-ejecutarse: la búsqueda comienza nuevamente, pero SQLite evita insertar capturas duplicadas. No es
-todavía una reanudación desde el cursor exacto de la última página.
+## Qué resuelve
 
-Para repetir también trabajos completos:
+- divide 43 días y diez familias de consultas en trabajos pequeños;
+- usa ventanas de una hora en partidos y de 15 minutos alrededor de la final;
+- marca una ventana como saturada cuando alcanza el máximo configurado;
+- subdivide ventanas saturadas hasta diez minutos con --auto-refine;
+- conserva la consulta, capa, período y computadora que encontró cada publicación;
+- evita duplicados por ID;
+- guarda perfiles y observaciones históricas de las cuentas;
+- separa corpus principal, búsquedas temáticas e hilos;
+- permite repartir el plan entre varias computadoras;
+- exporta CSV para revisión y Parquet para análisis masivo.
 
-```bash
-x-research collect --force
-```
+## Descargar hilos
 
-## 5. Revisar y exportar
+Después de reunir el corpus principal:
 
-```bash
-x-research summary
-x-research audit
-x-research export-csv
-x-research export-threads-csv
-```
+~~~bash
+x-research expand-threads \
+  --database data/mundial_2026.sqlite3 \
+  --raw-dir data/raw/mundial_2026 \
+  --top 200 \
+  --minimum-replies 20 \
+  --auto-refine
+~~~
 
-`audit` produce un resumen JSON con volumen, autores, fechas mínima y máxima en horario argentino,
-campos faltantes, tipos de relación, capturas y estado de los trabajos. El CSV general queda en
-`data/exports/tweets.csv`. Los datos no se versionan automáticamente porque pueden contener
-identificadores y nombres de usuarios.
+Este comando selecciona las 200 publicaciones raíz más respondidas de la capa principal y busca
+su conversación completa mediante conversation_id. Los hilos que alcanzan el límite también se
+subdividen por tiempo.
 
-Para exportar las publicaciones agrupadas por `conversation_id`, con el tuit raíz primero y las
-respuestas ordenadas por nivel y fecha:
+## Exportar
 
-```bash
-x-research export-threads-csv
-```
+Para una revisión manejable:
 
-El resultado queda en `data/exports/threads.csv`. Cada fila es una publicación completa e incluye
-`thread_depth`, `reply_to_tweet_id`, texto, usuario, métricas y el ID citado. Para exportar una sola
-conversación:
+~~~bash
+x-research export-threads-csv \
+  --database data/mundial_2026.sqlite3 \
+  --output data/exports/hilos.csv
+~~~
 
-```bash
-x-research export-threads-csv --conversation-id ID_DE_CONVERSACION
-```
+Para análisis de millones de registros:
 
-El filtro agrupa solamente lo que ya está en la base. Para incorporar respuestas adicionales hay
-que ejecutar previamente una configuración con `download_replies: true`, como
-`config/piloto_hilos.json`.
+~~~bash
+x-research export-parquet \
+  --database data/mundial_2026.sqlite3 \
+  --output data/parquet/mundial_2026_export_01
+~~~
 
-Para unir bases recolectadas en computadoras diferentes:
+La exportación Parquet crea publicaciones particionadas por fecha y capturas particionadas por capa
+y familia de consulta.
 
-```bash
-x-research merge-db nodo-a.sqlite3 nodo-b.sqlite3 --database data/research.sqlite3
-```
+Para preparar una muestra manual de contenidos y cuentas:
 
-La unión conserva los trabajos y relaciones de cada nodo y evita duplicar publicaciones por ID.
+~~~bash
+x-research export-annotation-sample \
+  --database data/mundial_2026.sqlite3 \
+  --output data/exports/muestra_etiquetado.csv \
+  --per-layer 100
+~~~
 
-## Cómo repartir una prueba entre computadoras
+## Varias computadoras
 
-Cada integrante puede copiar la configuración y asignarse una combinación diferente de consulta y
-fecha. Por ejemplo:
+Con cuatro nodos, cada persona usa un índice distinto:
 
-```text
-computadora A → Argentina, 19 de julio
-computadora B → "Argentina campeón", 19 de julio
-computadora C → Argentina, 20 de julio
-```
+~~~bash
+x-research collect-campaign \
+  --database data/nodo_0.sqlite3 \
+  --raw-dir data/raw/nodo_0 \
+  --shard-count 4 \
+  --shard-index 0 \
+  --auto-refine
+~~~
 
-Cada combinación genera un identificador determinístico. Al terminar, `merge-db` permite combinar
-las bases locales en una base común sin duplicar publicaciones.
+Los otros nodos usan índices 1, 2 y 3. Al finalizar:
 
-## Alcance actual
+~~~bash
+x-research merge-db \
+  data/nodo_0.sqlite3 data/nodo_1.sqlite3 \
+  data/nodo_2.sqlite3 data/nodo_3.sqlite3 \
+  --database data/mundial_2026.sqlite3
+~~~
 
-Este repositorio prueba únicamente `twscrape`. No incluye TwitterAPI.io ni genera costos. Su salida
-está normalizada para poder compararla posteriormente con una prueba de Twikit.
+## Documentación
 
-Ver también:
+- [Guía detallada de descarga masiva](docs/guia_descarga_masiva.md)
+- [Protocolo de investigación del Mundial 2026](docs/protocolo_mundial_2026.md)
+- [Etiquetado, ubicación y automatización](docs/etiquetado_y_limitaciones.md)
+- [Esquema de datos](docs/esquema_datos.md)
+- [Resultados del piloto de hilos](docs/resultados_piloto_hilos.md)
+- [Resultados del piloto de muestreo temporal](docs/resultados_piloto_muestreo_20260829.md)
+- [Evaluación general de twscrape](docs/informe_twscrape.md)
 
-- `docs/protocolo_prueba.md`
-- `docs/esquema_datos.md`
-- `docs/resultados_prueba_minima.md`
-- `docs/resultados_piloto_100.md`
-- `docs/resultados_piloto_hilos.md`
-- `docs/comparacion_alternativas.md`
-- `docs/informe_twscrape.md`
+## Seguridad y alcance
+
+twscrape usa interfaces no oficiales de X. Puede sufrir cambios, límites o bloqueos. Conviene
+emplear cuentas autorizadas para la investigación y no una cuenta personal principal.
+
+Las bases, cookies, textos, usuarios e identificadores reales están excluidos de Git. El repositorio
+público contiene código, configuraciones, metodología y resultados agregados; no el corpus.

@@ -16,6 +16,10 @@ class QuerySpec:
     until: str
     limit: int
     minimum_results: int = 1
+    query_family: str = ""
+    corpus_layer: str = "core"
+    minimum_window_minutes: int = 10
+    conversation_id: str = ""
 
     def epoch_bounds(self, timezone_name: str) -> tuple[int, int]:
         timezone = ZoneInfo(timezone_name)
@@ -26,6 +30,10 @@ class QuerySpec:
     def full_query_for(self, timezone_name: str) -> str:
         start, end = self.epoch_bounds(timezone_name)
         return f"{self.text} since_time:{start} until_time:{end}"
+
+    @property
+    def family(self) -> str:
+        return self.query_family or self.label
 
 
 @dataclass(frozen=True)
@@ -96,13 +104,47 @@ def _parse_query(data: Any, index: int) -> QuerySpec:
             f"{context}: 'minimum_results' debe estar entre 0 y 'limit'"
         )
 
+    corpus_layer = data.get("corpus_layer", "core")
+    if corpus_layer not in {"core", "thematic", "thread"}:
+        raise ValueError(
+            f"{context}: 'corpus_layer' debe ser core, thematic o thread"
+        )
+
+    minimum_window_minutes = data.get("minimum_window_minutes", 10)
+    if (
+        not isinstance(minimum_window_minutes, int)
+        or isinstance(minimum_window_minutes, bool)
+        or minimum_window_minutes <= 0
+    ):
+        raise ValueError(
+            f"{context}: 'minimum_window_minutes' debe ser un entero positivo"
+        )
+
+    label = _required_text(data, "label", context)
+    query_family = data.get("query_family", label)
+    if not isinstance(query_family, str) or not query_family.strip():
+        raise ValueError(f"{context}: 'query_family' debe ser un texto no vacío")
+
+    conversation_id = data.get("conversation_id", "")
+    if not isinstance(conversation_id, str):
+        raise ValueError(f"{context}: 'conversation_id' debe ser un texto")
+    conversation_id = conversation_id.strip()
+    if corpus_layer == "thread" and not conversation_id:
+        raise ValueError(
+            f"{context}: una consulta de capa thread requiere 'conversation_id'"
+        )
+
     return QuerySpec(
-        label=_required_text(data, "label", context),
+        label=label,
         text=_required_text(data, "text", context),
         since=since,
         until=until,
         limit=limit,
         minimum_results=minimum_results,
+        query_family=query_family.strip(),
+        corpus_layer=corpus_layer,
+        minimum_window_minutes=minimum_window_minutes,
+        conversation_id=conversation_id,
     )
 
 

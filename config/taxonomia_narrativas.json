@@ -1,0 +1,34 @@
+{
+  "stance": [
+    "hostilidad_contra_argentina",
+    "defensa_de_argentina",
+    "autocritica_argentina",
+    "neutral",
+    "ambigua"
+  ],
+  "narratives": [
+    "futbol_arbitraje",
+    "racismo",
+    "israel_palestina",
+    "malvinas",
+    "nazismo",
+    "economia_hambre",
+    "antiargentina_explicita",
+    "otra"
+  ],
+  "identity": [
+    "identificable",
+    "seudonima",
+    "indeterminada"
+  ],
+  "automation": [
+    "compatible",
+    "no_compatible",
+    "incierta"
+  ],
+  "notes": [
+    "La narrativa identifica el tema y no determina por sí sola la postura.",
+    "Identidad y automatización son dimensiones separadas.",
+    "La ubicación del perfil se considera autodeclarada, no comprobada."
+  ]
+}

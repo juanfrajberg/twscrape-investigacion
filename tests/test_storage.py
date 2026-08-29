@@ -34,6 +34,9 @@ def sample_tweet(tweet_id: str = "200") -> NormalizedTweet:
         retweeted_username=None,
         hashtags=("Argentina",),
         captured_at=datetime.now(UTC).isoformat(),
+        author_location="Buenos Aires",
+        author_created_at="2015-01-02T00:00:00+00:00",
+        author_followers_count=123,
     )
 
 
@@ -73,6 +76,8 @@ def test_deduplicates_capture_and_records_relationship(tmp_path):
 
     with store.connect() as database:
         assert database.execute("SELECT COUNT(*) FROM tweets").fetchone()[0] == 1
+        assert database.execute("SELECT COUNT(*) FROM user_snapshots").fetchone()[0] == 1
+        assert database.execute("SELECT location FROM users").fetchone()[0] == "Buenos Aires"
         relationship = database.execute(
             "SELECT relationship_type, target_tweet_id FROM relationships"
         ).fetchone()
@@ -228,3 +233,31 @@ def test_exports_threads_grouped_and_ordered(tmp_path):
     assert rows[0]["capture_kind"] == "search"
     assert rows[1]["capture_kind"] == "reply"
     assert rows[2]["reply_to_tweet_id"] == "101"
+
+
+def test_exports_reproducible_annotation_sample(tmp_path):
+    store = ResearchStore(tmp_path / "research.sqlite3")
+    config, query = experiment()
+    job_id, _ = store.prepare_job(
+        config,
+        query,
+        machine="test",
+        twscrape_version="0.20.1",
+    )
+    for index in range(5):
+        store.record_tweet(
+            job_id,
+            sample_tweet(str(200 + index)),
+            capture_kind="search",
+        )
+
+    first = tmp_path / "sample-1.csv"
+    second = tmp_path / "sample-2.csv"
+    assert store.export_annotation_sample(first, per_layer=3, seed=7) == 3
+    assert store.export_annotation_sample(second, per_layer=3, seed=7) == 3
+
+    assert first.read_text(encoding="utf-8") == second.read_text(encoding="utf-8")
+    with first.open(encoding="utf-8", newline="") as file:
+        rows = list(csv.DictReader(file))
+    assert all(row["source_layer"] == "core" for row in rows)
+    assert all(row["stance"] == "" for row in rows)

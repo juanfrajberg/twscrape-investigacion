@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import socket
 from contextlib import aclosing
 from datetime import UTC, datetime
@@ -39,6 +40,20 @@ def create_api(accounts_db: str | Path) -> Any:
     )
 
 
+def _raw_path_for_job(
+    raw_target: str | Path,
+    experiment: ExperimentConfig,
+    query: QuerySpec,
+    job_id: str,
+) -> Path:
+    target = Path(raw_target)
+    if target.suffix.lower() == ".jsonl":
+        return target
+    safe_experiment = re.sub(r"[^A-Za-z0-9_.-]+", "_", experiment.experiment_id)
+    safe_family = re.sub(r"[^A-Za-z0-9_.-]+", "_", query.family)
+    return target / safe_experiment / safe_family / f"{job_id}.jsonl"
+
+
 async def ensure_active_account(api: Any) -> None:
     pool = getattr(api, "pool", None)
     if pool is None or not hasattr(pool, "accounts_info"):
@@ -59,8 +74,8 @@ async def _collect_search(
     job_id: str,
     experiment: ExperimentConfig,
     query: QuerySpec,
-    raw_jsonl: Path,
-) -> tuple[list[Any], int, int, int]:
+    raw_target: Path,
+) -> tuple[list[Any], int, int, int, bool]:
     seeds: list[Any] = []
     seed_ids: set[str] = set()
     fetched = 0
@@ -68,6 +83,7 @@ async def _collect_search(
     filtered_outside_window = 0
     start_epoch, end_epoch = query.epoch_bounds(experiment.timezone)
     full_query = query.full_query_for(experiment.timezone)
+    raw_jsonl = _raw_path_for_job(raw_target, experiment, query, job_id)
     stream = api.search(
         full_query,
         limit=max(query.limit * 5, 100),
@@ -88,7 +104,22 @@ async def _collect_search(
             seeds.append(tweet)
             seed_ids.add(normalized.tweet_id)
             fetched += 1
-            added = store.record_tweet(job_id, normalized, capture_kind="search")
+            is_thread_root = (
+                query.corpus_layer == "thread"
+                and normalized.tweet_id == query.conversation_id
+            )
+            capture_kind = (
+                "reply"
+                if query.corpus_layer == "thread" and not is_thread_root
+                else "search"
+            )
+            root_tweet_id = query.conversation_id or None
+            added = store.record_tweet(
+                job_id,
+                normalized,
+                capture_kind=capture_kind,
+                root_tweet_id=root_tweet_id,
+            )
             if added:
                 write_jsonl_records(
                     raw_jsonl,
@@ -97,9 +128,11 @@ async def _collect_search(
                             "job_id": job_id,
                             "experiment_id": experiment.experiment_id,
                             "query_label": query.label,
+                            "query_family": query.family,
+                            "corpus_layer": query.corpus_layer,
                             "full_query": full_query,
-                            "capture_kind": "search",
-                            "root_tweet_id": None,
+                            "capture_kind": capture_kind,
+                            "root_tweet_id": root_tweet_id,
                             "tweet": normalized.to_dict(),
                         }
                     ],
@@ -107,7 +140,7 @@ async def _collect_search(
             else:
                 duplicates += 1
 
-    return seeds, fetched, duplicates, filtered_outside_window
+    return seeds, fetched, duplicates, filtered_outside_window, len(seed_ids) >= query.limit
 
 
 def _is_in_window(created_at: str | None, start_epoch: int, end_epoch: int) -> bool:
@@ -125,7 +158,7 @@ async def _collect_replies(
     job_id: str,
     experiment: ExperimentConfig,
     query: QuerySpec,
-    raw_jsonl: Path,
+    raw_target: Path,
     seeds: list[Any],
 ) -> tuple[int, int, int]:
     if (
@@ -149,6 +182,7 @@ async def _collect_replies(
         root_id = str(getattr(root, "id_str", getattr(root, "id", "")))
         if not root_id:
             continue
+        raw_jsonl = _raw_path_for_job(raw_target, experiment, query, job_id)
         try:
             stream = api.tweet_replies(
                 int(root_id),
@@ -184,6 +218,8 @@ async def _collect_replies(
                                     "job_id": job_id,
                                     "experiment_id": experiment.experiment_id,
                                     "query_label": query.label,
+                                    "query_family": query.family,
+                                    "corpus_layer": query.corpus_layer,
                                     "full_query": query.full_query_for(experiment.timezone),
                                     "capture_kind": "reply",
                                     "root_tweet_id": root_id,
@@ -214,6 +250,7 @@ async def collect_experiment(
     database_path: str | Path,
     raw_jsonl: str | Path,
     force: bool = False,
+    continue_on_error: bool = False,
     api: Any | None = None,
 ) -> list[dict[str, Any]]:
     store = ResearchStore(database_path)
@@ -242,6 +279,7 @@ async def collect_experiment(
             continue
 
         fetched = 0
+        search_fetched = 0
         duplicates = 0
         warnings = 0
         try:
@@ -250,6 +288,7 @@ async def collect_experiment(
                 search_fetched,
                 search_duplicates,
                 filtered_outside_window,
+                saturated,
             ) = await _collect_search(
                 client, store, job_id, experiment, query, raw_path
             )
@@ -268,6 +307,14 @@ async def collect_experiment(
                     "info",
                     f"Se descartaron {filtered_outside_window} resultados fuera del período",
                 )
+            if saturated:
+                store.add_event(
+                    job_id,
+                    "warning",
+                    "La ventana alcanzó el límite configurado y puede estar truncada; "
+                    "debe subdividirse.",
+                )
+                warnings += 1
 
             reply_fetched, reply_duplicates, reply_warnings = await _collect_replies(
                 client,
@@ -288,6 +335,8 @@ async def collect_experiment(
                 fetched_count=fetched,
                 duplicate_count=duplicates,
                 warning_count=warnings,
+                search_count=search_fetched,
+                saturated=saturated,
             )
             reports.append(
                 {
@@ -297,6 +346,7 @@ async def collect_experiment(
                     "fetched": fetched,
                     "duplicates": duplicates,
                     "warnings": warnings,
+                    "saturated": saturated,
                     "filtered_outside_window": filtered_outside_window,
                 }
             )
@@ -308,10 +358,22 @@ async def collect_experiment(
                 fetched_count=fetched,
                 duplicate_count=duplicates,
                 warning_count=warnings,
+                search_count=search_fetched,
                 error_message=str(error),
             )
-            raise RuntimeError(
-                f"Falló la consulta '{query.label}'. El progreso guardado no se pierde: {error}"
-            ) from error
+            message = (
+                f"Falló la consulta '{query.label}'. "
+                f"El progreso guardado no se pierde: {error}"
+            )
+            reports.append(
+                {
+                    "job_id": job_id,
+                    "query_label": query.label,
+                    "status": "failed",
+                    "error": str(error),
+                }
+            )
+            if not continue_on_error:
+                raise RuntimeError(message) from error
 
     return reports

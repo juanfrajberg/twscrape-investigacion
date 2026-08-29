@@ -1,68 +1,136 @@
 # Esquema de datos
 
-## `users`
+La base SQLite cumple dos funciones: almacenar el corpus normalizado y registrar el estado de la
+descarga. Los datos crudos se conservan además en JSONL separados por trabajo.
 
-Una fila por usuario. Se actualizan el nombre y el usuario visible cuando vuelve a aparecer.
+## users
 
-## `tweets`
+Una fila actual por usuario. Incluye:
 
-Una fila por ID de publicación. Incluye contenido, autor, métricas y referencias a respuesta, cita o
-retuit. Las métricas se actualizan cuando el mismo ID vuelve a capturarse.
+- ID, nombre de usuario y nombre visible;
+- biografía, ubicación autodeclarada y fecha de creación;
+- seguidores, seguidos, publicaciones, favoritos, listas y medios;
+- cuenta protegida, verificación tradicional y verificación paga;
+- imagen de perfil;
+- primera y última observación.
 
-## `jobs`
+Los datos describen lo que X devolvió en el momento de captura. No prueban la identidad ni la
+ubicación real de la persona.
 
-Una fila por combinación de experimento, consulta y ventana temporal. Registra estado, intentos,
-versión de `twscrape`, computadora, resultados, duplicados, advertencias y error final.
+## user_snapshots
 
-Estados posibles:
+Una observación por usuario y día. Permite estudiar cambios del perfil o de sus contadores sin
+sobrescribir completamente el pasado.
 
-- `pending`: creado pero no iniciado;
-- `running`: ejecución en curso;
-- `completed`: finalizado;
-- `failed`: interrumpido con error y apto para reintento.
+## tweets
 
-## `captures`
+Una fila por ID de publicación. Incluye:
 
-Vincula un tuit con el trabajo que lo encontró. Distingue:
+- ID, fecha, texto, idioma y URL;
+- ID del autor;
+- likes, retuits, respuestas, citas y visualizaciones;
+- conversation_id;
+- tuit y usuario respondido;
+- tuit y usuario citado;
+- tuit y usuario retuiteado;
+- hashtags, cashtags, menciones y enlaces;
+- tipo y URL de fotos, videos o GIF;
+- etiqueta de cliente, contenido sensible y lugar adjunto;
+- fecha de captura y proveedor.
 
-- `search`: resultado directo de la consulta;
-- `reply`: respuesta descargada desde uno de los tuits seleccionados.
+Las métricas se actualizan cuando el mismo ID vuelve a observarse.
 
-La restricción única impide duplicar la misma captura al repetir un trabajo.
+## jobs
 
-## `relationships`
+Una fila por combinación de experimento, consulta y ventana temporal. Registra:
+
+- familia de consulta;
+- capa del corpus;
+- límites temporales;
+- consulta completa;
+- computadora y versión de twscrape;
+- intentos, resultados, duplicados y avisos;
+- estado final;
+- indicador de saturación.
+
+Estados:
+
+- pending: creado pero no iniciado;
+- running: ejecución en curso;
+- completed: finalizado;
+- failed: finalizado con error y apto para reintento.
+
+Saturated igual a 1 significa que la búsqueda alcanzó el máximo configurado. Esa ventana puede
+estar truncada y debe subdividirse.
+
+## captures
+
+Vincula una publicación con cada trabajo que la encontró. Esto mantiene separada la publicación de
+su procedencia y permite que el mismo ID pertenezca a varias consultas sin duplicar tweets.
+
+Tipos:
+
+- search: resultado directo o raíz de una conversación;
+- reply: publicación encontrada dentro de una expansión de hilo.
+
+Las capas se obtienen desde el trabajo:
+
+- core: corpus principal para volumen y prevalencia;
+- thematic: búsquedas orientadas a narrativas;
+- thread: expansión de conversaciones.
+
+## relationships
 
 Aristas entre publicaciones:
 
-- `reply`;
-- `quote`;
-- `retweet`.
+- reply;
+- quote;
+- retweet.
 
-Incluye, cuando están disponibles, los IDs y usuarios de origen y destino. Esta tabla se puede usar
-posteriormente para construir un grafo.
+Incluyen los IDs de publicación y usuario disponibles. Esta tabla permite construir grafos de
+respuestas, citas y amplificación.
 
-## Exportación de conversaciones
+## job_events
 
-`x-research export-threads-csv` crea una tabla plana apta para análisis. Una fila representa una
-publicación y todas las filas de la misma conversación comparten `conversation_id`.
+Advertencias, información y errores asociados con cada trabajo. Conserva el motivo de descartes,
+fallos de X y ventanas saturadas.
 
-El orden es:
+## JSONL crudo normalizado
 
-1. `conversation_id`;
-2. `thread_depth`;
-3. fecha de publicación;
-4. ID del tuit.
+Las campañas guardan un archivo por trabajo:
 
-`thread_depth = 0` representa la raíz disponible, `1` una respuesta directa y los valores mayores
-respuestas anidadas. `parent_in_dataset` y `root_in_dataset` indican si el padre y la raíz están
-presentes en la base; esto evita interpretar como completo un hilo del que sólo se descargó una
-parte.
+~~~text
+data/raw/campaign/EXPERIMENTO/FAMILIA/JOB_ID.jsonl
+~~~
 
-El CSV incluye los campos solicitados para cada fila: ID, fecha, texto, autor, likes, retuits,
-cantidad de respuestas, ID y usuario respondido e ID y usuario citado. `capture_kind` distingue
-resultados encontrados por búsqueda de respuestas descargadas como contexto.
+Cada registro incluye experimento, trabajo, familia, capa, consulta completa, tipo de captura,
+conversation_id raíz y todos los campos normalizados.
 
-## `job_events`
+## CSV de conversaciones
 
-Advertencias y errores asociados con cada trabajo. Permite saber si una ejecución marcada como
-completa tuvo problemas al descargar respuestas particulares.
+El comando export-threads-csv crea una fila por publicación y ordena por:
+
+1. conversation_id;
+2. profundidad del hilo;
+3. fecha;
+4. ID.
+
+Thread_depth igual a 0 representa la raíz disponible. Parent_in_dataset y root_in_dataset indican
+si el padre y la raíz están presentes; un valor 0 evita interpretar un hilo parcial como completo.
+
+## Parquet
+
+El comando export-parquet produce:
+
+~~~text
+tweets/date=AAAA-MM-DD/part-00000.parquet
+captures/layer=CAPA/family=FAMILIA/part-00000.parquet
+users.parquet
+user_snapshots.parquet
+relationships.parquet
+jobs.parquet
+job_events.parquet
+~~~
+
+Tweets queda deduplicado por ID. Captures conserva la relación de muchos a muchos entre
+publicaciones, consultas y capas.

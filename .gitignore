@@ -25,6 +25,10 @@ data/raw/*
 !data/raw/.gitkeep
 data/exports/*
 !data/exports/.gitkeep
+data/plans/*
+!data/plans/.gitkeep
+data/parquet/*
+!data/parquet/.gitkeep
 
 # Sistema operativo / editores
 .DS_Store

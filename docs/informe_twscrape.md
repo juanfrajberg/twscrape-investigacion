@@ -1,6 +1,6 @@
 # Prueba de twscrape para armar la base de X
 
-Última actualización: 28 de agosto de 2026.
+Última actualización: 29 de agosto de 2026.
 
 ## Qué se probó
 
@@ -29,8 +29,13 @@ reconocer un trabajo ya terminado y evitar duplicarlo.
 
 La prueba demuestra que `twscrape` puede recuperar los datos pedidos y que la estructura construida
 alrededor de la librería sirve para organizar la base. Un piloto posterior amplió la muestra a 100
-resultados y descargó 50 respuestas completas. Antes de una descarga masiva todavía hace falta
-medir cobertura y estabilidad con un volumen mayor.
+resultados y descargó 50 respuestas completas. El 29 de agosto se ejecutó además un muestreo
+temporal de 300 publicaciones: día normal, partido y final. Las tres franjas alcanzaron el límite,
+por lo que el sistema las marcó para subdivisión.
+
+La campaña completa del Mundial quedó definida en 2.160 trabajos reanudables: 1.278 del corpus
+principal y 882 temáticos. Incluye reparto entre nodos, refinamiento automático, expansión por
+`conversation_id`, metadatos de cuenta y exportación Parquet.
 
 ## Resultados de la prueba real
 
@@ -60,22 +65,22 @@ no se publican porque contienen identificadores de usuarios y una sesión privad
 Sí, al menos para la ventana que se probó. La búsqueda recuperó publicaciones históricas del 19 de
 julio de 2026.
 
-Hubo un problema inicial importante: los operadores de fecha simples de X devolvían algunos
-resultados del día siguiente en horario argentino. Para corregirlo, el programa ahora:
+Para controlar el período de manera consistente, el programa:
 
 1. interpreta las fechas en `America/Argentina/Buenos_Aires`;
 2. las convierte a segundos Unix con hora exacta;
 3. agrega `since_time` y `until_time` a la consulta;
 4. vuelve a controlar localmente la fecha antes de guardar cada publicación.
 
-La prueba confirma un día concreto, no todo el período del proyecto. Antes de descargar la base
-completa hay que repetir el experimento sobre varias fechas: días con mucho volumen, días con poco
-volumen y días alejados en el tiempo.
+El muestreo posterior confirmó acceso histórico en un día normal, un partido y la final. La
+campaña completa conserva la misma validación para todos los intervalos.
 
 ### 2. ¿Cuántos resultados recupera y qué tan completa es la búsqueda?
 
-Para la prueba mínima recuperó 20 de los 20 resultados solicitados. Los 20 IDs fueron distintos.
-Eso demuestra que alcanzó el límite pedido, pero no que haya recuperado todos los tuits existentes.
+Para la prueba mínima recuperó 20 de los 20 resultados solicitados. El muestreo temporal posterior
+recuperó 100 de 100 en cada una de sus tres franjas. Todos los IDs fueron distintos dentro de cada
+trabajo. Alcanzar el límite demuestra capacidad de recuperación, pero no que se hayan obtenido
+todos los tuits existentes.
 
 X no informa cuántos resultados totales existen para una búsqueda y no contamos con una base de
 referencia completa. Por eso hay dos conceptos distintos:
@@ -166,19 +171,20 @@ Los precios pueden cambiar y deben confirmarse antes de comprar créditos.
 
 ### 6. ¿Qué tan fácil es repartir la descarga entre computadoras?
 
-El proyecto ya incluye una forma simple de hacerlo. Cada computadora trabaja sobre una partición
-distinta, definida por:
+El proyecto asigna automáticamente una parte determinística del plan a cada computadora mediante
+`--shard-count` y `--shard-index`. Cada nodo trabaja sobre combinaciones distintas de:
 
 - consulta;
 - fecha o franja horaria;
 - límite de resultados.
 
-Ejemplo:
+Ejemplo con cuatro nodos:
 
 ```text
-nodo A → consulta 1, 19 de julio, 00:00–06:00
-nodo B → consulta 1, 19 de julio, 06:00–12:00
-nodo C → consulta 2, 19 de julio, 00:00–06:00
+nodo 0 → --shard-count 4 --shard-index 0
+nodo 1 → --shard-count 4 --shard-index 1
+nodo 2 → --shard-count 4 --shard-index 2
+nodo 3 → --shard-count 4 --shard-index 3
 ```
 
 Cada combinación genera un identificador estable. La base registra el estado del trabajo, la
@@ -210,8 +216,9 @@ La configuración acepta tanto días completos (`2026-07-19`) como horas locales
 | ID del tuit respondido | `reply_to_tweet_id` y relación `reply` | Probado en vivo para tuits encontrados por búsqueda |
 | ID del tuit citado | `quoted_tweet_id` y relación `quote` | Probado en vivo |
 
-Además se guardan idioma, URL, visualizaciones, cantidad de citas, conversación, hashtags, retuits
-originales, consulta de origen y momento de captura.
+Además se guardan idioma, URL, visualizaciones, cantidad de citas, conversación, hashtags,
+menciones, enlaces, medios, lugar adjunto, metadatos del perfil, consulta de origen, capa y momento
+de captura.
 
 ## ¿Cómo se retoman descargas y se evitan duplicados?
 
@@ -275,11 +282,10 @@ Para obtener una estimación defendible hay que medir primero:
 
 ## Recomendación concreta
 
-1. **Usar este proyecto como piloto gratuito de `twscrape`, no como descarga masiva todavía.** La
-   primera prueba funcionó y la estructura de datos ya resuelve el guardado, la auditoría y la
-   distribución.
-2. **Ampliar el piloto** y exigir como siguiente hito una prueba de 1.000 publicaciones con
-   respuestas.
+1. **Usar la campaña preparada de forma gradual.** Comenzar con pocos trabajos, revisar saturación
+   y recién después ejecutar los 2.160 trabajos con refinamiento automático.
+2. **Mantener separadas las tres capas.** El corpus principal sirve para prevalencia y picos; las
+   búsquedas temáticas y los hilos para recuperación de casos y redes.
 3. **Comparar Twikit y `twscrape` con exactamente la misma consulta y período.** La opción gratuita
    recomendada debe ser la que muestre mayor estabilidad y superposición de IDs en varias
    repeticiones, no la que tenga más funciones en la documentación.
@@ -297,19 +303,19 @@ Para obtener una estimación defendible hay que medir primero:
 | Pedido | Estado |
 |---|---|
 | Comparación breve | Incluida, con cuatro alternativas |
-| Una solución funcionando | Piloto real de 100 búsquedas más 50 respuestas |
+| Una solución funcionando | Pilotos reales de 150 registros con hilos y 300 publicaciones temporales |
 | Prueba por consulta y período | Realizada y documentada |
 | Campos mínimos | Guardados y validados, incluidas 50 respuestas completas |
-| Evaluación de acceso histórico | Confirmada para un día; falta ampliar el período |
-| Cantidad y completitud | 100/100 respecto del límite más 50 respuestas; cobertura total desconocida |
-| Límites y estabilidad | Sin bloqueos en la muestra; falta medir un volumen mayor |
+| Evaluación de acceso histórico | Confirmada en día normal, partido y final |
+| Cantidad y completitud | 300/300 respecto de los límites; las tres franjas quedaron saturadas |
+| Límites y estabilidad | Saturación detectada y refinamiento temporal implementado |
 | Cuentas, cookies y proxies | Documentados |
 | Costos | Estimados para cuatro tamaños y dos opciones pagas |
 | Tiempos | Medición pequeña y rangos de planificación incluidos |
-| Distribución | Particiones, estados y unión de bases implementados |
+| Distribución | Reparto automático por nodo, estados y unión de bases implementados |
 | Reanudación | Por trabajo completo; no todavía desde cursor de página |
 | Duplicados | Controlados por ID y por captura |
-| Recomendación | Continuar el piloto gratuito con condición de estabilidad y plan pago alternativo |
+| Recomendación | Ejecutar la campaña gratuita por etapas y conservar un plan pago alternativo |
 | Código e instrucciones | Publicados en este repositorio |
 
 ## Cómo reproducirlo
@@ -319,13 +325,13 @@ Las instrucciones completas están en el [`README`](../README.md). El recorrido 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install ".[dev]"
-x-research validate-config
+python -m pip install ".[dev,mass]"
+x-research validate-campaign
 pytest
-x-research collect
+x-research collect --config config/piloto_muestreo_mundial_2026.json
 x-research summary
 x-research audit
-x-research export-csv
+x-research plan-campaign
 ```
 
 Fuentes técnicas principales:

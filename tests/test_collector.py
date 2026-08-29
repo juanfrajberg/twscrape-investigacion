@@ -167,5 +167,57 @@ async def test_search_continues_until_unique_limit(tmp_path):
 
     assert reports[0]["fetched"] == 2
     assert reports[0]["duplicates"] == 1
+    assert reports[0]["saturated"] is True
     with sqlite3.connect(database_path) as database:
         assert database.execute("SELECT COUNT(*) FROM tweets").fetchone()[0] == 2
+        assert database.execute("SELECT saturated FROM jobs").fetchone()[0] == 1
+
+
+class ThreadAPI:
+    async def search(self, query, limit, kv):
+        assert "conversation_id:100" in query
+        yield tweet("100", reply_count=2)
+        yield tweet("101", reply_to="100")
+        yield tweet("102", reply_to="100")
+
+
+@pytest.mark.asyncio
+async def test_collects_conversation_query_as_thread_layer(tmp_path):
+    query = QuerySpec(
+        label="thread__100",
+        text="conversation_id:100",
+        since="2026-07-19",
+        until="2026-07-20",
+        limit=10,
+        minimum_results=1,
+        query_family="hilos",
+        corpus_layer="thread",
+        conversation_id="100",
+    )
+    config = ExperimentConfig(
+        experiment_id="threads",
+        search_product="Latest",
+        download_replies=False,
+        reply_source_limit=0,
+        replies_per_tweet=0,
+        reply_delay_seconds=0,
+        queries=(query,),
+    )
+    database_path = tmp_path / "threads.sqlite3"
+
+    reports = await collect_experiment(
+        config,
+        accounts_db=tmp_path / "accounts.db",
+        database_path=database_path,
+        raw_jsonl=tmp_path / "raw",
+        api=ThreadAPI(),
+    )
+
+    assert reports[0]["fetched"] == 3
+    with sqlite3.connect(database_path) as database:
+        captures = database.execute(
+            "SELECT capture_kind, COUNT(*) FROM captures GROUP BY capture_kind"
+        ).fetchall()
+        layer = database.execute("SELECT corpus_layer FROM jobs").fetchone()[0]
+    assert captures == [("reply", 2), ("search", 1)]
+    assert layer == "thread"
