@@ -33,6 +33,11 @@ resultados y descargó 50 respuestas completas. El 29 de agosto se ejecutó adem
 temporal de 300 publicaciones: día normal, partido y final. Las tres franjas alcanzaron el límite,
 por lo que el sistema las marcó para subdivisión.
 
+La hora normal se repitió luego con un límite de 1.000: se recuperaron 120 publicaciones únicas,
+117 autores y ningún campo mínimo faltante. La ventana no quedó saturada, de modo que una hora es
+suficiente para esa consulta y ese momento. Los escenarios de partido y final deben calibrarse por
+separado.
+
 La campaña completa del Mundial quedó definida en 2.160 trabajos reanudables: 1.278 del corpus
 principal y 882 temáticos. Incluye reparto entre nodos, refinamiento automático, expansión por
 `conversation_id`, metadatos de cuenta y exportación Parquet.
@@ -303,11 +308,11 @@ Para obtener una estimación defendible hay que medir primero:
 | Pedido | Estado |
 |---|---|
 | Comparación breve | Incluida, con cuatro alternativas |
-| Una solución funcionando | Pilotos reales de 150 registros con hilos y 300 publicaciones temporales |
+| Una solución funcionando | Pilotos reales de 150 registros con hilos, 300 publicaciones temporales y una hora ampliada de 120 |
 | Prueba por consulta y período | Realizada y documentada |
 | Campos mínimos | Guardados y validados, incluidas 50 respuestas completas |
 | Evaluación de acceso histórico | Confirmada en día normal, partido y final |
-| Cantidad y completitud | 300/300 respecto de los límites; las tres franjas quedaron saturadas |
+| Cantidad y completitud | 300/300 en el piloto inicial; la hora normal ampliada recuperó 120/1.000 y no se saturó |
 | Límites y estabilidad | Saturación detectada y refinamiento temporal implementado |
 | Cuentas, cookies y proxies | Documentados |
 | Costos | Estimados para cuatro tamaños y dos opciones pagas |

@@ -47,7 +47,31 @@ ninguna de ellas. El piloto confirma que:
 - la validación temporal elimina resultados fuera de rango;
 - los metadatos necesarios para ubicación y análisis de cuentas están disponibles;
 - la campaña completa debe usar límites mayores y subdivisión automática;
-- incluso un día sin partido puede requerir ventanas menores a una hora.
+- el tope inicial de 100 no permite decidir por sí solo el tamaño definitivo de las ventanas.
+
+## Ampliación de la hora normal
+
+Se repitió la primera franja con un límite de 1.000 mediante
+`config/prueba_hora_normal_mundial_2026.json`.
+
+| Medida | Resultado |
+|---|---:|
+| Período | 13 de junio, 12:00–13:00 ART |
+| Publicaciones únicas | 120 |
+| Autores únicos | 117 |
+| Límite | 1.000 |
+| Saturada | No |
+| Duplicados | 0 |
+| Fuera de ventana descartados | 9 |
+| Textos, autores, fechas o métricas faltantes | 0 |
+| Perfiles con ubicación declarada | 73 |
+| Relaciones de respuesta | 36 |
+| Relaciones de cita | 10 |
+
+La primera prueba había mostrado solamente que existían al menos 100 resultados. La ampliación
+midió 120 y no se saturó: para esta consulta y esta hora normal no es necesario subdividir por
+debajo de una hora. Esto no se extrapola automáticamente a partidos ni a la final, que deben
+calibrarse por separado.
 
 ## Exportaciones verificadas
 

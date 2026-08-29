@@ -72,17 +72,23 @@ de publicaciones del intervalo.
 
 ## 5. Ensayo de la campaña
 
-Ejecutar solamente tres trabajos:
+No se deben ejecutar simplemente los tres primeros trabajos del plan: podrían corresponder a la
+misma fecha o familia de consultas. Se calibran deliberadamente tres escenarios: una hora normal,
+una hora de partido de Argentina y una hora de la final.
+
+La hora normal se puede reproducir con:
 
 ~~~bash
-x-research collect-campaign \
-  --campaign config/campania_mundial_2026.json \
-  --database data/mundial_2026.sqlite3 \
-  --raw-dir data/raw/mundial_2026 \
-  --max-jobs 3
+x-research collect \
+  --config config/prueba_hora_normal_mundial_2026.json \
+  --database data/prueba_hora_normal.sqlite3 \
+  --raw-jsonl data/raw/prueba_hora_normal.jsonl
 ~~~
 
-Si funciona, continuar con todos:
+Esta prueba recuperó 120 publicaciones entre las 12:00 y las 13:00 del 13 de junio, sin alcanzar
+el límite de 1.000. Por lo tanto, una ventana de una hora resultó suficiente en ese caso.
+
+Después de calibrar los tres escenarios, continuar con todos:
 
 ~~~bash
 x-research collect-campaign \

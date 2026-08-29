@@ -1,0 +1,22 @@
+{
+  "experiment_id": "prueba_hora_normal_mundial_2026",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "search_product": "Latest",
+  "download_replies": false,
+  "reply_source_limit": 0,
+  "replies_per_tweet": 0,
+  "reply_delay_seconds": 0,
+  "queries": [
+    {
+      "label": "dia_normal_20260613_1200_1300",
+      "query_family": "argentina_mundial",
+      "corpus_layer": "core",
+      "text": "(Argentina OR Argentine OR argentinos OR Albiceleste) (Mundial OR WorldCup OR \"World Cup\" OR FIFA)",
+      "since": "2026-06-13T12:00:00",
+      "until": "2026-06-13T13:00:00",
+      "limit": 1000,
+      "minimum_results": 20,
+      "minimum_window_minutes": 10
+    }
+  ]
+}

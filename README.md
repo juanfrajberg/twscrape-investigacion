@@ -71,18 +71,23 @@ x-research summary --database data/piloto_muestreo.sqlite3
 x-research audit --database data/piloto_muestreo.sqlite3
 ~~~
 
-### 5. Probar tres trabajos de la campaña completa
+### 5. Calibrar los tres escenarios representativos
+
+No conviene tomar simplemente los tres primeros trabajos del plan, porque podrían pertenecer a la
+misma fecha o familia. Se prueban deliberadamente un día normal, un partido de Argentina y la
+final. La prueba ampliada de la hora normal se ejecuta así:
 
 ~~~bash
-x-research collect-campaign \
-  --campaign config/campania_mundial_2026.json \
-  --database data/mundial_2026.sqlite3 \
-  --raw-dir data/raw/mundial_2026 \
-  --max-jobs 3
+x-research collect \
+  --config config/prueba_hora_normal_mundial_2026.json \
+  --database data/prueba_hora_normal.sqlite3 \
+  --raw-jsonl data/raw/prueba_hora_normal.jsonl
 ~~~
 
-Si esos trabajos terminan bien, la campaña completa se ejecuta quitando --max-jobs 3 y
-agregando --auto-refine:
+El ensayo verificado recuperó 120 publicaciones en una hora y no alcanzó el límite de 1.000.
+
+Una vez calibrados los tres escenarios, la campaña completa se ejecuta con refinamiento
+automático:
 
 ~~~bash
 x-research collect-campaign \
