@@ -73,6 +73,43 @@ midió 120 y no se saturó: para esta consulta y esta hora normal no es necesari
 debajo de una hora. Esto no se extrapola automáticamente a partidos ni a la final, que deben
 calibrarse por separado.
 
+## Ampliación del partido y la final
+
+Se probaron dos horas efectivas de juego, de acuerdo con los horarios locales publicados por FIFA:
+
+- Argentina–Suiza: 11 de julio, 22:00–23:00 ART;
+- final Argentina–España: 19 de julio, 16:00–17:00 ART.
+
+Configuraciones reproducibles:
+
+- `config/prueba_hora_partido_argentina_mundial_2026.json`;
+- `config/prueba_hora_final_mundial_2026.json`.
+
+| Medida | Argentina–Suiza | Final Argentina–España |
+|---|---:|---:|
+| Publicaciones guardadas | 1.000 | 987 |
+| Autores únicos | 917 | 952 |
+| Límite solicitado | 1.000 | 1.000 |
+| Resultado completo respecto del total de X | No | No |
+| Duplicados en el trabajo completo | 2 | No calculable tras la pausa |
+| Fuera de ventana descartados | 18 | No calculable tras la pausa |
+| Campos mínimos faltantes | 0 | 0 |
+| Perfiles con ubicación declarada | 597 | 626 |
+| Relaciones de respuesta | 161 | 146 |
+| Relaciones de cita | 40 | 50 |
+
+Argentina–Suiza alcanzó el límite de 1.000 y quedó formalmente marcada como saturada. Durante la
+final se guardaron 987 resultados antes de que X aplicara una pausa temporal a la única cuenta
+disponible. Aunque quedaron 13 resultados para alcanzar el límite solicitado, 987 tampoco debe
+interpretarse como el total existente: la hora es demasiado amplia para una búsqueda completa.
+
+Los ensayos muestran una diferencia de al menos ocho veces entre la hora normal y las horas de
+partido. La campaña debe comenzar directamente con ventanas de 10–15 minutos en partidos y final,
+mantener ventanas mayores fuera de los picos y conservar el refinamiento automático como control.
+
+Fuentes de los horarios: [Argentina–Suiza en FIFA](https://www.fifa.com/es/tournaments/mens/worldcup/canadamexicousa2026/articles/goles-videos-argentina-suiza-mundial-2026-resumen-highlights)
+y [final España–Argentina en FIFA](https://www.fifa.com/es/tournaments/mens/worldcup/canadamexicousa2026/articles/videos-goles-espana-argentina-copa-mundial-resumen-highlights).
+
 ## Exportaciones verificadas
 
 La misma base se exportó correctamente a Parquet:

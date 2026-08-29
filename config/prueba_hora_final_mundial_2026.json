@@ -1,0 +1,22 @@
+{
+  "experiment_id": "prueba_hora_final_mundial_2026",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "search_product": "Latest",
+  "download_replies": false,
+  "reply_source_limit": 0,
+  "replies_per_tweet": 0,
+  "reply_delay_seconds": 0,
+  "queries": [
+    {
+      "label": "final_argentina_espana_20260719_1600_1700",
+      "query_family": "partidos_argentina",
+      "corpus_layer": "core",
+      "text": "(Argentina OR Messi) (España OR Spain OR Final OR Mundial OR WorldCup)",
+      "since": "2026-07-19T16:00:00",
+      "until": "2026-07-19T17:00:00",
+      "limit": 1000,
+      "minimum_results": 20,
+      "minimum_window_minutes": 10
+    }
+  ]
+}

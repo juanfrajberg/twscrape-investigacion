@@ -88,6 +88,32 @@ x-research collect \
 Esta prueba recuperó 120 publicaciones entre las 12:00 y las 13:00 del 13 de junio, sin alcanzar
 el límite de 1.000. Por lo tanto, una ventana de una hora resultó suficiente en ese caso.
 
+Las otras dos pruebas se ejecutan de la misma forma:
+
+~~~bash
+x-research collect \
+  --config config/prueba_hora_partido_argentina_mundial_2026.json \
+  --database data/prueba_hora_partido.sqlite3 \
+  --raw-jsonl data/raw/prueba_hora_partido.jsonl
+
+x-research collect \
+  --config config/prueba_hora_final_mundial_2026.json \
+  --database data/prueba_hora_final.sqlite3 \
+  --raw-jsonl data/raw/prueba_hora_final.jsonl
+~~~
+
+Resultados medidos:
+
+| Escenario | Ventana ART | Guardados | Límite | Interpretación |
+|---|---|---:|---:|---|
+| Día normal | 13/06, 12:00–13:00 | 120 | 1.000 | No saturada |
+| Argentina–Suiza | 11/07, 22:00–23:00 | 1.000 | 1.000 | Saturada |
+| Final Argentina–España | 19/07, 16:00–17:00 | 987 | 1.000 | Incompleta por pausa de X |
+
+La cuenta recibió una pausa de aproximadamente quince minutos después de la descarga intensiva.
+Varias computadoras con la misma cuenta comparten ese límite; para ganar velocidad deben usar
+cuentas diferentes y autorizadas para la investigación.
+
 Después de calibrar los tres escenarios, continuar con todos:
 
 ~~~bash

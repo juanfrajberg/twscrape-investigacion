@@ -86,6 +86,24 @@ x-research collect \
 
 El ensayo verificado recuperó 120 publicaciones en una hora y no alcanzó el límite de 1.000.
 
+Las otras dos franjas se reproducen con:
+
+~~~bash
+x-research collect \
+  --config config/prueba_hora_partido_argentina_mundial_2026.json \
+  --database data/prueba_hora_partido.sqlite3 \
+  --raw-jsonl data/raw/prueba_hora_partido.jsonl
+
+x-research collect \
+  --config config/prueba_hora_final_mundial_2026.json \
+  --database data/prueba_hora_final.sqlite3 \
+  --raw-jsonl data/raw/prueba_hora_final.jsonl
+~~~
+
+La hora de Argentina–Suiza alcanzó el límite de 1.000. La hora de la final guardó 987 antes de
+que X impusiera una pausa temporal a la cuenta. Ninguno de esos valores representa el total real:
+partido y final deben dividirse en ventanas de 10–15 minutos.
+
 Una vez calibrados los tres escenarios, la campaña completa se ejecuta con refinamiento
 automático:
 
