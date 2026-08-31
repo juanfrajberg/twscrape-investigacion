@@ -253,6 +253,7 @@ el límite. Las bases SQLite se envían al coordinador por un medio privado y se
 ## Documentación
 
 - [Auditoría del conjunto externo de búsquedas e hilos](docs/auditoria_dataset_externo_20260830.md)
+- [Auditoría del corpus ampliado](docs/auditoria_dataset_externo_20260831.md)
 - [Guía detallada de descarga masiva](docs/guia_descarga_masiva.md)
 - [Protocolo de investigación del Mundial 2026](docs/protocolo_mundial_2026.md)
 - [Etiquetado, ubicación y automatización](docs/etiquetado_y_limitaciones.md)

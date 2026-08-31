@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import heapq
 import json
 import math
 import re
@@ -33,6 +34,7 @@ TWEET_FIELDS = (
     "url",
     "capture_search",
     "capture_thread",
+    "corpus_role",
     "thread_occurrences",
     "thread_conversation_count",
     "in_original_query_day_utc",
@@ -42,6 +44,27 @@ TWEET_FIELDS = (
     "is_conversation_root",
     "root_status",
     "parent_status",
+)
+
+ENGAGEMENT_FIELDS = (
+    "tweet_id",
+    "date_art",
+    "username",
+    "text",
+    "interaction_total",
+    "likes",
+    "retweets",
+    "replies",
+    "quotes",
+    "views",
+    "corpus_role",
+    "capture_search",
+    "capture_thread",
+    "mentions_argentina",
+    "in_research_day_art",
+    "is_conversation_root",
+    "conversation_id",
+    "url",
 )
 
 
@@ -187,6 +210,10 @@ def _write_parquet(path: Path, rows: list[dict[str, Any]], fields: tuple[str, ..
 
 def _hour_key(value: datetime, timezone: ZoneInfo) -> datetime:
     return value.astimezone(timezone).replace(minute=0, second=0, microsecond=0)
+
+
+def _interaction_total(row: dict[str, Any]) -> int:
+    return sum(int(row.get(field) or 0) for field in ("likes", "retweets", "replies", "quotes"))
 
 
 def audit_external_jsonl(
@@ -342,6 +369,9 @@ def audit_external_jsonl(
             {
                 "capture_search": tweet_id in direct,
                 "capture_thread": tweet_id in thread_canonical,
+                "corpus_role": (
+                    "search_return" if tweet_id in direct else "thread_context_only"
+                ),
                 "thread_occurrences": thread_occurrences[tweet_id],
                 "thread_conversation_count": len(memberships),
                 "in_original_query_day_utc": _in_window(created_at, query_start, query_end),
@@ -536,6 +566,24 @@ def audit_external_jsonl(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     _write_csv(destination / "tweets_clean.csv", clean_rows, TWEET_FIELDS)
+    search_rows = [row for row in clean_rows if row["capture_search"]]
+    _write_csv(destination / "search_returns.csv", search_rows, TWEET_FIELDS)
+    _write_csv(
+        destination / "search_returns_research_day_art.csv",
+        [row for row in search_rows if row["in_research_day_art"]],
+        TWEET_FIELDS,
+    )
+    top_engagement = heapq.nlargest(500, clean_rows, key=_interaction_total)
+    engagement_rows = []
+    for row in top_engagement:
+        output = dict(row)
+        output["interaction_total"] = _interaction_total(row)
+        engagement_rows.append(output)
+    _write_csv(
+        destination / "top_engagement_review.csv",
+        engagement_rows,
+        ENGAGEMENT_FIELDS,
+    )
     conversation_fields = tuple(conversation_rows[0].keys()) if conversation_rows else ()
     _write_csv(destination / "conversations_audit.csv", conversation_rows, conversation_fields)
     concentration_fields = tuple(concentration_rows[0].keys()) if concentration_rows else ()

@@ -73,3 +73,10 @@ def test_audits_search_threads_roots_and_windows(tmp_path):
     missing = next(row for row in rows if row["tweet_id"] == "201")
     assert missing["root_status"] == "root_missing"
     assert missing["parent_status"] == "parent_missing"
+    assert missing["corpus_role"] == "thread_context_only"
+
+    with (output / "search_returns.csv").open(encoding="utf-8") as source:
+        search_rows = list(csv.DictReader(source))
+    assert {row["tweet_id"] for row in search_rows} == {"100", "101"}
+    assert (output / "search_returns_research_day_art.csv").exists()
+    assert (output / "top_engagement_review.csv").exists()

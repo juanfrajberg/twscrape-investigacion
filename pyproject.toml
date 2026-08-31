@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "x-research-twscrape"
-version = "0.3.0"
+version = "0.3.1"
 description = "Campañas reproducibles y reanudables para recolectar publicaciones públicas de X"
 readme = "README.md"
 requires-python = ">=3.11"
