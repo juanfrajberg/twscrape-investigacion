@@ -231,6 +231,25 @@ x-research merge-db \
   --database data/mundial_2026.sqlite3
 ~~~
 
+Para la comparación de 24 horas, todos deben usar el mismo total de nodos y un índice distinto.
+Ejemplo con ocho equipos:
+
+~~~bash
+x-research collect-campaign \
+  --campaign config/comparacion_final_24h_2026.json \
+  --database data/final_nodo_0.sqlite3 \
+  --raw-dir data/raw/final_nodo_0 \
+  --plan-output data/plans/final_nodo_0.json \
+  --shard-count 8 \
+  --shard-index 0 \
+  --auto-refine \
+  --max-refinement-rounds 3
+~~~
+
+Cada equipo reemplaza `0` por su índice, de 0 a 7. Para ganar velocidad real, cada ejecución
+simultánea necesita una cuenta de X distinta; usar la misma cuenta en varias computadoras comparte
+el límite. Las bases SQLite se envían al coordinador por un medio privado y se unen con `merge-db`.
+
 ## Documentación
 
 - [Auditoría del conjunto externo de búsquedas e hilos](docs/auditoria_dataset_externo_20260830.md)

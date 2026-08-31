@@ -94,3 +94,16 @@ Esta prueba permite comparar correctamente:
 
 La campaña completa de 43 días debe comenzar después de esta calibración. Si las ventanas de 15
 minutos se saturan, se subdividen a 5 minutos antes de extrapolar volumen y tiempo.
+
+## Primera medición operacional de la comparación
+
+Las dos primeras ventanas de la consulta amplia `Argentina` recuperaron 804 y 571 publicaciones
+únicas, respectivamente: 1.375 en la primera media hora. Cada descarga efectiva tardó menos de un
+minuto, pero una sola cuenta agotó el cupo de `SearchTimeline` y debió esperar el siguiente bloque
+de aproximadamente 15 minutos.
+
+Este resultado permite estimar el cuello de botella: con una cuenta, 384 trabajos pueden demandar
+hasta unas 96 horas si cada uno consume un bloque. Las consultas más específicas podrían reducir
+ese tiempo, pero no conviene prometerlo antes de observarlas. El camino para llegar antes no es
+reducir el límite —eso introduciría truncamiento— sino repartir el mismo plan entre varias cuentas
+y computadoras mediante `--shard-count` y `--shard-index`.
