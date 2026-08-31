@@ -35,7 +35,7 @@ def create_api(accounts_db: str | Path) -> Any:
     return API(
         str(accounts_db),
         raise_when_no_account=True,
-        wait_timeout=60,
+        wait_timeout=1200,
         wait_interval=2,
     )
 

@@ -104,6 +104,37 @@ La hora de Argentina–Suiza alcanzó el límite de 1.000. La hora de la final g
 que X impusiera una pausa temporal a la cuenta. Ninguno de esos valores representa el total real:
 partido y final deben dividirse en ventanas de 10–15 minutos.
 
+### Comparación controlada de la final durante 24 horas
+
+Para medir volumen sin mezclar resultados directos con publicaciones agregadas al reconstruir
+hilos, hay una campaña separada que repite cuatro consultas conocidas en ventanas de 15 minutos:
+
+~~~bash
+x-research validate-campaign \
+  --campaign config/comparacion_final_24h_2026.json
+
+x-research collect-campaign \
+  --campaign config/comparacion_final_24h_2026.json \
+  --database data/comparacion_final_24h_2026.sqlite3 \
+  --raw-dir data/raw/comparacion_final_24h_2026 \
+  --plan-output data/plans/comparacion_final_24h_2026.json \
+  --auto-refine \
+  --max-refinement-rounds 3
+~~~
+
+Son 384 trabajos iniciales. Se puede detener y ejecutar nuevamente: los trabajos terminados se
+omiten y los interrumpidos se repiten sin duplicar publicaciones.
+
+Al terminar, la comparación por hora e ID con otro archivo de resultados directos se genera así:
+
+~~~bash
+x-research compare-external-search \
+  --tweets /ruta/a/tweets.jsonl \
+  --database data/comparacion_final_24h_2026.sqlite3 \
+  --output data/exports/comparacion_final_24h_2026 \
+  --experiment-id comparacion_final_24h_2026
+~~~
+
 Una vez calibrados los tres escenarios, la campaña completa se ejecuta con refinamiento
 automático:
 
@@ -202,6 +233,7 @@ x-research merge-db \
 
 ## Documentación
 
+- [Auditoría del conjunto externo de búsquedas e hilos](docs/auditoria_dataset_externo_20260830.md)
 - [Guía detallada de descarga masiva](docs/guia_descarga_masiva.md)
 - [Protocolo de investigación del Mundial 2026](docs/protocolo_mundial_2026.md)
 - [Etiquetado, ubicación y automatización](docs/etiquetado_y_limitaciones.md)

@@ -1,0 +1,38 @@
+{
+  "campaign_id": "comparacion_final_24h_2026",
+  "description": "Descarga estratificada de 24 horas con las mismas cuatro consultas del corpus externo, en horario argentino.",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "since": "2026-07-19",
+  "until": "2026-07-20",
+  "search_product": "Latest",
+  "default_window_minutes": 15,
+  "limit_per_job": 1000,
+  "minimum_window_minutes": 5,
+  "queries": [
+    {
+      "label": "argentina",
+      "text": "Argentina",
+      "corpus_layer": "core",
+      "minimum_results": 0
+    },
+    {
+      "label": "espana_argentina",
+      "text": "España Argentina",
+      "corpus_layer": "core",
+      "minimum_results": 0
+    },
+    {
+      "label": "argentina_espana",
+      "text": "Argentina España",
+      "corpus_layer": "core",
+      "minimum_results": 0
+    },
+    {
+      "label": "argentina_campeon",
+      "text": "Argentina campeón",
+      "corpus_layer": "core",
+      "minimum_results": 0
+    }
+  ],
+  "window_overrides": []
+}

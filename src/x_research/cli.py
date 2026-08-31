@@ -17,7 +17,9 @@ from .campaign import (
     write_experiment,
 )
 from .collector import collect_experiment
+from .comparison import compare_external_search
 from .config import ExperimentConfig, load_config
+from .external_audit import audit_external_jsonl
 from .parquet import export_parquet_dataset
 from .storage import ResearchStore
 
@@ -217,6 +219,31 @@ def build_parser() -> argparse.ArgumentParser:
     annotation.add_argument("--output", type=Path, default=DEFAULT_ANNOTATION_CSV)
     annotation.add_argument("--per-layer", type=int, default=100)
     annotation.add_argument("--seed", type=int, default=2026)
+
+    external_audit = subparsers.add_parser(
+        "audit-external-jsonl",
+        help="Auditar y limpiar resultados directos e hilos JSONL de otro recolector",
+    )
+    external_audit.add_argument("--tweets", type=Path, required=True)
+    external_audit.add_argument("--threads", type=Path, required=True)
+    external_audit.add_argument("--output", type=Path, required=True)
+    external_audit.add_argument("--target-date", default="2026-07-19")
+    external_audit.add_argument(
+        "--timezone", default="America/Argentina/Buenos_Aires"
+    )
+
+    compare_external = subparsers.add_parser(
+        "compare-external-search",
+        help="Comparar por hora e ID una campaña con resultados directos externos",
+    )
+    compare_external.add_argument("--tweets", type=Path, required=True)
+    compare_external.add_argument("--database", type=Path, required=True)
+    compare_external.add_argument("--output", type=Path, required=True)
+    compare_external.add_argument("--experiment-id", required=True)
+    compare_external.add_argument("--target-date", default="2026-07-19")
+    compare_external.add_argument(
+        "--timezone", default="America/Argentina/Buenos_Aires"
+    )
 
     return parser
 
@@ -472,6 +499,29 @@ def main(argv: list[str] | None = None) -> int:
                 seed=args.seed,
             )
             print(f"Exportadas {count} filas para etiquetado a {args.output}")
+            return 0
+
+        if args.command == "audit-external-jsonl":
+            report = audit_external_jsonl(
+                args.tweets,
+                args.threads,
+                args.output,
+                target_date=args.target_date,
+                timezone_name=args.timezone,
+            )
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+            return 0
+
+        if args.command == "compare-external-search":
+            report = compare_external_search(
+                args.tweets,
+                args.database,
+                args.output,
+                experiment_id=args.experiment_id,
+                target_date=args.target_date,
+                timezone_name=args.timezone,
+            )
+            print(json.dumps(report, ensure_ascii=False, indent=2))
             return 0
     except Exception as error:
         print(f"Error: {error}", file=sys.stderr)

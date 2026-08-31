@@ -29,6 +29,7 @@ data/plans/*
 !data/plans/.gitkeep
 data/parquet/*
 !data/parquet/.gitkeep
+outputs/
 
 # Sistema operativo / editores
 .DS_Store
